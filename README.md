@@ -1,2 +1,2 @@
-# cu_machine_learning
+# MachineLearning
 Projects for Columbia Machine Learning course
