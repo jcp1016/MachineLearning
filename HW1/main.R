@@ -1,5 +1,5 @@
-## R script for questions 3.1a and 3.1b
-## Functions fit_wml and predict_Y are in functions.R
+## R script for HW 1
+## All functions are in functions.R
 ##
 ## Assumptions:
 ##    1)  X.txt contains 392 observations of 7 variables
@@ -7,6 +7,7 @@
 ##    3)  There are no missing values
 ##    4)  *.txt files are in a subdirectory named data_csv-2
 ##
+
 ## Read the data
 setwd("./data_csv-2")
 y <- read.csv("y.txt", header = FALSE)
@@ -25,6 +26,7 @@ setwd("../")
 source("functions.R")
 #plot_data(trainingset)
 
-repeat_tests(1, 372, alldata)
-repeat_tests(1000, 372, alldata)
-
+repeat_tests(t = 1, ntrain = 372, data = alldata, p = 1)
+for (i in 1:4) {
+        repeat_tests(1000, 372, alldata, i)
+}

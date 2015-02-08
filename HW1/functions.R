@@ -1,5 +1,4 @@
-## For questions 3.1.a and 3.1.b
-## Compute least squares regression using matrices
+## Compute least squares regression coefficients using matrices
 fit_wml <- function(X = Xtrain, y = Ytrain, mode = 1) {
 
         X <- as.matrix(X)
@@ -16,14 +15,14 @@ fit_wml <- function(X = Xtrain, y = Ytrain, mode = 1) {
         wml
 }
 
-## For question 3.1.b, predict Y values for a test set
+## Use model to predict Y values for a test set
 predict_Y <- function(X = Xtest, w = wml) {
   Ypred <- X %*% w
   Ypred 
 }
 
-## Run t number of tests and compute Mean Absolute Error (MAE)
-repeat_tests <- function(t = 1000, ntrain = 372, data = alldata) {
+## Run t number of tests and compute Mean Absolute Error (MAE) or Root Mean-Squared Error (RMSE)
+repeat_tests <- function(t = 1000, ntrain = 372, data = alldata, p = 1) {
         MAE <- as.numeric(rep(NA, t))
         for (i in 1:t) {
                 ## Randomly split data into a training set and a test set
@@ -58,9 +57,9 @@ repeat_tests <- function(t = 1000, ntrain = 372, data = alldata) {
                 cat(" wml = \n")
                 print(wml)
                 ## to verify, compare with results from R lm function
-                ##df <- cbind(y, X)
-                ##lm_model <- lm(df[,1] ~ df[,3] + df[,4] + df[,5] + df[,6] + df[,7] + df[,8])
-                ##cat("\n Compare with results from lm: \n",  t(coef(lm_model)), "\n")
+                ## df <- cbind(Ytrain, Xtrain)
+                ## lm_model <- lm(df[,1] ~ df[,3] + df[,4] + df[,5] + df[,6] + df[,7] + df[,8])
+                ## cat("\n Compare with results from lm: \n",  t(coef(lm_model)), "\n")
         } else {  ## print results for part 3.1.b
                 cat(" Number of tests = ", t, "\n")
                 cat(" MAE Mean = ", mean(MAE, na.rm = TRUE), "\n")
@@ -68,14 +67,12 @@ repeat_tests <- function(t = 1000, ntrain = 372, data = alldata) {
         }
 }
 
-## Make some exploratory plots
+## Make some exploratory plots, although not required for the HW
 plot_data <- function(df) {
         
         layout(matrix(c(1,1,1,2,3,4,5,6,7), 3, 3, byrow = TRUE), respect = TRUE)
         
         hist(t(y), main = "Distribution of Miles per Gallon", col="gray", xlab = "MPG")
-        #dmpg <- density(df$mpg)
-        #plot(dmpg, main = "Distribution of Miles per Gallon")
         
         model <- lm(df$mpg ~ df$number_of_cylinders)
         with(df, plot(number_of_cylinders, mpg, main = "MPG and Cylinders(Std)",
@@ -114,7 +111,7 @@ plot_data <- function(df) {
         abline(model, lwd=2)
 }
 
-## Function to set color
+## Green for positive slope, red for negative slope
 get_color <- function(lm_model) {
         
         if (coefficients(lm_model)[2] >= 0) "darkseagreen" else "indianred3"
