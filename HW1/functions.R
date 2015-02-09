@@ -21,9 +21,13 @@ predict_Y <- function(X = Xtest, w = wml) {
   Ypred 
 }
 
-## Run t number of tests and compute Mean Absolute Error (MAE) or Root Mean-Squared Error (RMSE)
-repeat_tests <- function(t = 1000, ntrain = 372, data = alldata, p = 1) {
-        MAE <- as.numeric(rep(NA, t))
+## For t experiments, compute Mean Absolute Error (MAE) and Root Mean-Squared Error (RMSE)
+repeat_process <- function(t = 1000, ntrain = 372, data = alldata, p = 1, showplot = "Y") {
+        MAE   <- as.numeric(rep(NA, t))
+        RMSE  <- as.numeric(rep(NA, t))
+        ntest <- nrow(alldata) - ntrain
+        pred_error <- matrix(numeric(0), nrow = ntest, ncol = t)
+        
         for (i in 1:t) {
                 ## Randomly split data into a training set and a test set
                 train       <- sample(seq_len(nrow(data)), size = ntrain)
@@ -31,10 +35,11 @@ repeat_tests <- function(t = 1000, ntrain = 372, data = alldata, p = 1) {
                 testset     <- data[-train,]
                 
                 ## Prep for least squares regression model fitting
+                d <- ncol(data)
                 Ytrain      <- as.matrix(trainingset[,1])
-                Xtrain      <- as.matrix(trainingset[,2:8])
+                Xtrain      <- as.matrix(trainingset[,2:d])
                 Ytest       <- as.matrix(testset[,1])
-                Xtest       <- as.matrix(testset[2:8])
+                Xtest       <- as.matrix(testset[2:d])
                 names(Ytrain) <- "mpg"
         
                 ## Solve for vector of least squares regression coefficients
@@ -42,16 +47,22 @@ repeat_tests <- function(t = 1000, ntrain = 372, data = alldata, p = 1) {
         
                 ## Predict Y for the test samples
                 Ypred <- predict_Y(Xtest, wml) 
-        
-                ## Calculate the Mean Absolute Error (MAE) of the predictions
+
                 n <- nrow(Ytest)
                 if (n > 0) {
+                        ## Calculate the mean absolute error (MAE) and root mean squared error (RMSE) 
+                        ## of the predictions.
                         MAE[i] <- 0
+                        RMSE[i] <- 0
                         for (j in 1:n) {
-                                MAE[i] <- MAE[i] + abs(Ytest[j] - Ypred[j])
+                                pred_error[j,i] <- Ytest[j] - Ypred[j]
+                                MAE[i]  <- MAE[i]  + abs(pred_error[j,i])
+                                RMSE[i] <- RMSE[i] + (pred_error[j,i]^2)  
                         }
-                        MAE[i] <- MAE[i] / n
+                        MAE[i]  <- MAE[i] / n
+                        RMSE[i] <- sqrt(RMSE[i] / n)
                 }
+                
         }
         if (t == 1) {  ## print results for part 3.1.a
                 cat(" wml = \n")
@@ -60,11 +71,48 @@ repeat_tests <- function(t = 1000, ntrain = 372, data = alldata, p = 1) {
                 ## df <- cbind(Ytrain, Xtrain)
                 ## lm_model <- lm(df[,1] ~ df[,3] + df[,4] + df[,5] + df[,6] + df[,7] + df[,8])
                 ## cat("\n Compare with results from lm: \n",  t(coef(lm_model)), "\n")
-        } else {  ## print results for part 3.1.b
-                cat(" Number of tests = ", t, "\n")
-                cat(" MAE Mean = ", mean(MAE, na.rm = TRUE), "\n")
-                cat(" MAE Standard Deviation = ", sd(MAE, na.rm = TRUE), "\n")
+        } else {
+                RMSE <- as.matrix(RMSE)
+                mean_RMSE   <- calc_MLE_mean(RMSE)
+                sd_RMSE     <- calc_MLE_sd(RMSE, mean_RMSE)
+                mean_error  <- calc_MLE_mean(pred_error)
+                sd_error    <- calc_MLE_sd(pred_error, mean_error)
+                results <- c(p, mean_RMSE, sd_RMSE, mean_error, sd_error)
+                if (showplot == "Y") {
+                        hist(pred_error, 
+                             main = paste("Histogram of Prediction Errors for p = ", p),
+                             col="gray",
+                             xlab = "Ytest - Ypred")
+                }
+                results
         }
+}
+
+calc_MLE_mean <- function(X) {  
+        n  <- nrow(X) * ncol(X)
+        mu <- 0
+        if (n > 0) {
+                mu <- sum(X) / n
+        }
+        mu 
+}
+
+calc_MLE_sd <- function(X, mu) {     
+        r <- nrow(X)
+        c <- ncol(X)
+        n <- r * c
+        
+        sigma <- 0
+        sigma_ml <- 0
+        if (n > 0) {
+                for (i in 1:r) {
+                        for (j in 1:c) {
+                                sigma <- sigma + (X[i,j] - mu)^2 
+                        }
+                }
+                sigma_ml <- sqrt(sigma / n)        
+        }
+        sigma_ml
 }
 
 ## Make some exploratory plots, although not required for the HW
@@ -109,6 +157,8 @@ plot_data <- function(df) {
                       col  = get_color(model),
                       xlab="", ylab = "MPG"))
         abline(model, lwd=2)
+        
+        layout(1,1)
 }
 
 ## Green for positive slope, red for negative slope
