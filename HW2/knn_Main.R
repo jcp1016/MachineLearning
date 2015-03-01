@@ -31,7 +31,7 @@ for (k in 1:5) {
         Cnames <- as.character(c(0:9))
         C <- matrix( rep(0), nrow=10, ncol=10, byrow=TRUE, dimnames=list(Cnames, Cnames))
         for (i in 1:n) {
-                Ypred[i] <- classify( k, Xtest[i,], Xtrain, Ytrain )
+                Ypred[i] <- classifyKNN( k, Xtest[i,], Xtrain, Ytrain )
                 C[Ytest[i]+1, Ypred[i]+1] <- C[Ytest[i]+1, Ypred[i]+1] + 1
         }
         pred_accuracy <- calcTrace(C) / n
