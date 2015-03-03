@@ -18,7 +18,7 @@ Ytest <- as.matrix(read.table("./mnist_csv/label_test.txt", sep=',', dec='.',
 Q <- as.matrix(read.table("./mnist_csv/Q.txt", sep=',', dec='.', 
                 check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
 
-source("knn_Functions.R")
+source("functions.R")
 
 #Visualize a row of Xtrain or Xtest
 #p1 <- visualizeX( Q, Xtrain, 4000 )
@@ -40,5 +40,3 @@ for (k in 1:5) {
         print(C)
 }
 options(warn=0)
-
-
