@@ -49,3 +49,7 @@ if (n > 0) {
 cat("\nNumber of test cases = ", n, "\nPrediction accuracy = ", pred_accuracy, "\n")
 cat("C = \n")
 print(C)
+
+## Plot mu for a class
+mu <- as.matrix(getMu(0))
+visualizeX(t(mu), 1)

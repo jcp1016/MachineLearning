@@ -22,13 +22,14 @@ classifyKNN <- function( k=1, X, Xtrain, Ytrain ) {
         as.integer( yf[ind,1] )       
 }
 
-classifyBayes <- function( x, y, case ) {       
+classifyBayes <- function( x, y, case, explore=FALSE ) {       
         class_MU      <- matrix(rep(0), nrow=1,  ncol=20)
         class_SIGMA   <- matrix(rep(0), nrow=20, ncol=20)
         class_SIGMA_I <- matrix(rep(0), nrow=20, ncol=20)
         classifier    <- vector("integer", 10)
         
         X  <- as.matrix(x)
+        y  <- as.integer(y)
         n  <- nrow(Ytrain)
         p1 <- p2 <- p3 <- p4 <- 0
         for (k in 1:10) {
@@ -43,9 +44,9 @@ classifyBayes <- function( x, y, case ) {
                 p4 <- exp(p3)
                 classifier[k] <- prod(class_prior, 1/sqrt(det(class_SIGMA)), p4)
         }
-        winner <- which (classifier == max(classifier))
+        winner <- as.integer( which (classifier == max(classifier)) )
         if ((winner-1) != y) {
-                #cat("\n", case, y, winner-1 )
+                cat("\n", case, y, winner-1)
         }
         as.integer( winner-1 )
 }
