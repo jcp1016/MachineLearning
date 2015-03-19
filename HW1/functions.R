@@ -14,6 +14,21 @@ fit_wml <- function(X = Xtrain, y = Ytrain, mode = 1) {
         wml <- XtXinv_Xt %*% Y       
         wml
 }
+fit_wln <- function(X = Xtrain, y = Ytrain, mode = 1) {
+        
+        X <- as.matrix(X)
+        Y <- as.matrix(y)
+        
+        ## t() is an R fn that returns the transpose of a matrix
+        Xt <- t(X)  
+        
+        ## solve() is an R fn that returns the inverse of a matrix
+        Xt_XXtinv <- Xt %*% solve(X %*% Xt)   
+        
+        ## Project onto Y to get the coefficients
+        wln <- Xt_XXtinv %*% Y       
+        wln
+}
 
 ## Use model to predict Y values for a test set
 predict_Y <- function(X = Xtest, w = wml) {
@@ -44,9 +59,11 @@ repeat_process <- function(t = 1000, ntrain = 372, data = alldata, p = 1, showpl
         
                 ## Solve for vector of least squares regression coefficients
                 wml <- fit_wml(Xtrain, Ytrain, t)  
-        
+                wln <- fit_wln(Xtrain, Ytrain, t)
+                
                 ## Predict Y for the test samples
-                Ypred <- predict_Y(Xtest, wml) 
+                Ypred <- predict_Y(Xtest, wml)
+                Ypred_wln <- predictY(Xtest, wln)
 
                 n <- nrow(Ytest)
                 if (n > 0) {
@@ -67,6 +84,7 @@ repeat_process <- function(t = 1000, ntrain = 372, data = alldata, p = 1, showpl
         if (t == 1) {  ## print results for part 3.1.a
                 cat(" wml = \n")
                 print(wml)
+                print(wln)
                 ## to verify, compare with results from R lm function
                 ## df <- cbind(Ytrain, Xtrain)
                 ## lm_model <- lm(df[,1] ~ df[,3] + df[,4] + df[,5] + df[,6] + df[,7] + df[,8])

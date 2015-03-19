@@ -22,7 +22,6 @@ names(X) <- c("intercept_term",
               "acceleration",
               "model_year")
 alldata <- cbind(y,X)
-alldata2 <- 
 setwd("../")
 source("functions.R")
 #plot_data(trainingset)
