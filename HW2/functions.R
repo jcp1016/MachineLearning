@@ -82,23 +82,28 @@ getPrior <- function(class, n) {
         PI
 }
 
-fit_softmax_wml <- function(data = training_set) {
-        
+fit_softmax_wml <- function(X = Xtrain, Y = Ytrain) {     
         W <- matrix(rep(0), nrow=21, ncol=10)
-        step <- 0.1/1000
+        n <- nrow(X)
+        step <- 0.1/n
+        X <- cbind(1, X)
         
         ## For each class, estimate the optimal vector of coefficients; 
-        ## Xc is (n x 21),  W is (21 x 10), L is (21 x 1)
-        for (class in 0:9) {
-                Xc     <- as.matrix( filter( data, y==class )[,-1] )
-                newcol <- matrix(rep(1), nrow=nrow(Xc), ncol=1)
-                Xc     <- cbind(newcol, Xc)           
-                for (t in 1:1000) {
-                        b <- max( Xc %*% W )
-                        normc <- sum( exp( (Xc %*% W) - b) )      
-                        L <- t(Xc) %*% (1 - ( exp( (Xc %*% W[,class+1]) - b ) / normc ) )
-                        W[,class+1] <- W[,class+1] + step * L
+        ## X is (n x 21),  W is (21 x 10), L is (21 x 1)
+        ind <- rep.int(0, n)
+        for (t in 1:1000) {
+                for (class in 0:9) {
+                        for (j in 1:n) {
+                                ind[j] <- as.integer( Y[j] == class )
+                        }
+                        s   <- as.matrix( X %*% W )
+                        p   <- exp( s[,class+1] ) / rowSums( exp(s) )
+                        dw  <- as.data.frame( t(X) %*% (ind - p) )
+                        W[,class+1] <- as.matrix( W[,class+1] + step * dw)
+                        ind <- rep.int(0, n)
                 }
+                s <- as.matrix( X %*% W )
+                L[t] <- sum(s) - log( sum(exp(s)) )
         }    
         W
 }
@@ -107,7 +112,7 @@ predict_softmax_Y <- function(x, y, w = wml, case) {
         X <- as.matrix(x)
         X <- rbind(1, X)
         W <- as.matrix(w)
-        classifier <- t(X) %*% W                
+        classifier <- t(W) %*% X         
         winner <- which (classifier == max(classifier))
         if ((winner-1) != y) {
                 #cat("\n", case, y, winner-1 )

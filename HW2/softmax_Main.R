@@ -33,12 +33,11 @@ Cnames <- as.character(c(0:9))
 C <- matrix( rep(0), nrow=10, ncol=10, byrow=TRUE, dimnames=list(Cnames, Cnames))
 
 ## Fit the model
-wml <- fit_softmax_wml(training_set)
+wml <- fit_softmax_wml(Xtrain, Ytrain)
 
 ## Classify the test set and populate the confusion matrix
 n <- nrow(Ytest)
 Ypred  <- vector(mode="integer", length=n)
-#cat("\nMisclassified case, Ytest, Ypred")
 for (i in 1:n) {
         Ypred[i] <- predict_softmax_Y( Xtest[i,], Ytest[i], wml, i )
         C[Ytest[i]+1, Ypred[i]+1] <- C[Ytest[i]+1, Ypred[i]+1] + 1    
