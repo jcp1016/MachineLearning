@@ -19,13 +19,10 @@ Q <- as.matrix(read.table("./mnist_csv/Q.txt", sep=',', dec='.',
                 check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
 
 source("functions.R")
-
-#Visualize a row of Xtrain or Xtest
-#p1 <- visualizeX( Q, Xtrain, 4000 )
-
 n <- nrow(Xtest)
 Ypred <- vector(mode="integer", length=n)
 options(warn=-1)
+
 for (k in 1:5) {
         #C is the confusion matrix
         Cnames <- as.character(c(0:9))
