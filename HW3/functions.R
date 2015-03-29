@@ -11,7 +11,7 @@ sampleDiscreteRV <- function(n, W) {
 }
 
 classifyBayesLinear <- function(B_t, X, y) {
-        ## B_t is a sample where col1 is the label, col2 is a bias term (1), and cols3,... are features;
+        ## B_t is a sample: col1 is the label, col2 is a bias term (1), and cols3,... are features;
         ## Gaussian parameters for the Bayes classifier are computed from B_t
         nc  <- ncol(B_t)
         PI0 <- getPrior(-1, B_t)
@@ -22,7 +22,6 @@ classifyBayesLinear <- function(B_t, X, y) {
         SIGMA <- getSigma(MU, B_t[,3:nc]) ## exclude label and bias term from SIGMA
         SIGMA_I <- solve(SIGMA)
 
-        w0 <- 0
         w0 <- log(PI1/PI0) - 0.5 * t(MU1 + MU0)  ## (1x9)
         w0 <- w0 %*% SIGMA_I                     ## (1x9)
         w0 <- w0 %*% (MU1 - MU0)                 ## (1x1)
@@ -32,7 +31,7 @@ classifyBayesLinear <- function(B_t, X, y) {
 
         X <- as.matrix(X)
         f_x <- X %*% w                           ## (1x1)
-        f_x
+        sign(f_x)
 }
 
 getMu <- function(class, S) {
