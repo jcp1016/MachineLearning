@@ -1,6 +1,6 @@
 sampleDiscreteRV <- function(n, W) {
-        ## Assumes n is a positive integer
-        ## Assumes W is a discrete k-dimensional probability distribution
+        ## Assumes n is a positive integer,
+        ## and W is a discrete k-dimensional probability distribution
         RV <- integer(n)
         Fx <- cumsum(W)
         U  <- runif(n)
@@ -10,9 +10,67 @@ sampleDiscreteRV <- function(n, W) {
         RV
 }
 
-classifyBayesLinear <- function(B_t, X, y) {
+boostClassifier <- function(T, Xtest, Ytest, n) {
+        test_set <- cbind(Ytest, Xtest)
+        names(test_set)[1] <- "y"
+        p           <- matrix(rep(0), nrow=T, ncol=n)
+        p[1,]       <- rep(1/n, n)
+        Ypred       <- matrix(nrow=T, ncol=n)
+        epsilon     <- numeric(T)
+        alpha       <- numeric(T)
+        pred_errors <- integer(T)
+        pred_errors[1] <- 1
+        f_boost     <- integer(n)
+        for (t in 1:T) {
+                if (pred_errors[t] > 0) {
+                        p[t,] <- p[t,] / sum(p[t,], na.rm=TRUE)
+                        RV  <- sampleDiscreteRV(n, p[t,])
+                        B_t <- test_set[RV,]
+                        #hist(RV)
+                        for (i in 1:n) {
+                                Ypred[t,i] <- classifyBayesLinear(B_t, Xtest[i,])
+                        }
+                        errors <- which( Ypred[t,] != Ytest )
+                        epsilon[t] <- sum( p[t, errors] )
+                        if (epsilon[t] == 0) {
+                                next
+                        }
+                        alpha[t] <- 0.5 * log( (1-epsilon[t]) / epsilon[t] )
+                        if (t < T) {
+                                for (i in 1:n) {
+                                        p[t+1,i] <- p[t,i] * exp(-alpha[t] * Ytest[i] * Ypred[t,i]) 
+                                        f_boost[i] <- sign( sum(alpha[1:t] %*% Ypred[1:t,i], na.rm=TRUE) )
+                                }
+                                pred_errors[t+1] <- length( which( f_boost != Ytest ) )
+                        }
+                } 
+        }
+        return( list(epsilon, alpha, pred_errors, p, f_boost) )
+}
+
+calculatePredictionAccuracy <- function(n, Y, Ypred) {
+        ## Assumes each Y value is -1 or 1
+        C_names <- as.character(c(-1,1))
+        C <- matrix( rep(0), nrow=2, ncol=2, dimnames=list(C_names, C_names)) 
+        actual <- pred <- 0
+        for (i in 1:n) {
+                actual <- Y[i]
+                pred   <- Ypred[i]
+                if (actual == -1) actual <- 0
+                if (pred   == -1) pred   <- 0
+                C[actual+1, pred+1] <- C[actual+1, pred+1] + 1   
+                actual <- pred <- 0
+        }
+        pred_accuracy <- 0
+        if (n > 0) {
+                pred_accuracy <- calcTrace(C) / n
+        }
+        return(list(pred_accuracy, C))
+}
+
+classifyBayesLinear <- function(B_t, X0) {
         ## B_t is a sample: col1 is the label, col2 is a bias term (1), and cols3,... are features;
-        ## Gaussian parameters for the Bayes classifier are computed from B_t
+        ## Gaussian parameters for the Bayes classifier are computed from B_t;
         nc  <- ncol(B_t)
         PI0 <- getPrior(-1, B_t)
         PI1 <- getPrior(1, B_t)
@@ -29,8 +87,8 @@ classifyBayesLinear <- function(B_t, X, y) {
         w   <- SIGMA_I %*% (MU1 - MU0)           ## (9x1)
         w   <- rbind(w0,w)
 
-        X <- as.matrix(X)
-        f_x <- X %*% w                           ## (1x1)
+        X0 <- as.matrix(X0)
+        f_x <- X0 %*% w                           ## (1x1)
         sign(f_x)
 }
 

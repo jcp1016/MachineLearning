@@ -1,28 +1,23 @@
 require("ggplot2")
 require("dplyr")
 
-## Read inputs
+## Read input files 
 setwd("./cancer_csv")
-X <- read.csv("X.csv", header=FALSE)
-Y <- read.csv("y.csv", header=FALSE)
+all_X <- read.csv("X.csv", header=FALSE)
+all_Y <- read.csv("y.csv", header=FALSE)
 setwd("../")
+source("functions.R")
 
+## Set up data structures 
 test   <- c(1:183)
-Xtest  <- X[test,]
-Ytest  <- as.vector( Y[test,] )
-Xtrain <- X[-test,]
-Ytrain <- as.vector( Y[-test,] )
-training_set <- cbind(Ytrain, Xtrain)
-testing_set  <- cbind(Ytest, Xtest)
-names(training_set)[1] <- "y"
-names(testing_set)[1]  <- "y"
-n_test  <- length(Ytest)
-n_train <- length(Ytrain)
-## Define the confusion matrix
-Cnames <- as.character(c(-1,1))
-CM <- matrix( rep(0), nrow=2, ncol=2, byrow=TRUE, dimnames=list(Cnames, Cnames))
+Xtest  <- all_X[test,]
+Xtrain <- all_X[-test,]
+Ytest  <- as.vector( all_Y[test,] )
+Ytrain <- as.vector( all_Y[-test,] )
 
 ## Part 1
+## Generate a discrete random variable distributed according to the CDF of W; 
+## Plot its histogram for n=100, 200, 300, 400
 W <- c(0.1, 0.2, 0.3, 0.4)
 for (n in c(100, 200, 300, 400)) {
         c <- sampleDiscreteRV(n, W)
@@ -35,65 +30,63 @@ for (n in c(100, 200, 300, 400)) {
 
 ## Part 2
 ## Implement a boosted linear Bayes classifier with sampling;
-## Gaussian parameters are calculated from "boostrap" samples B_t.
-T <- 500 
+## Gaussian parameters are calculated from "boostrap" samples B_t
+T <- 1000 
+
+## Run on the training set
+n <- length(Ytrain)
+#epsilon     <- numeric(T)
+#alpha       <- numeric(T)
+#pred_errors <- integer(T)
+#f_boost     <- integer(n)
+
+result <- boostClassifier(T, Xtrain, Ytrain, n)
+epsilon     <- as.vector( result[1] )
+alpha       <- as.vector( result[2] )
+pred_errors <- as.vector( result[3] )
+p           <- as.data.frame( result[4] )
+f_boost     <- as.vector( unlist(result[5]) )
+
+result <- calculatePredictionAccuracy(n, Ytrain, f_boost)
+pred_accuracy <- as.numeric( result[1] )
+C <- result[2]
+cat("\nTraining Accuracy:")
+cat("\nNumber of test cases = ", n, 
+    "\nPrediction accuracy = ", pred_accuracy, 
+    "\nPrediction error = ", 1 - pred_accuracy, "\n")
+cat("C = \n")
+print(C)
+
+## Plot training error as a function of iteration t
+## Plot alpha_t and epsilon_t as a function of t
+
 ## Run on the test set
-n <- n_test
-Ypred <- matrix(nrow=n, ncol=T)
-p <- numeric(n)
-p <- rep(1/n, n)
-epsilon <- numeric(T)
-alpha   <- numeric(T)
-f_boost <- integer(n)
-for (t in 1:T) {
-        RV  <- sampleDiscreteRV(n, p)
-        B_t <- testing_set[RV,]
-        for (i in 1:n) {
-                Ypred[i,t] <- classifyBayesLinear(B_t, Xtest[i,], Ytest[i])
-        }
-        errors <- which( Ypred[,t] != Ytest )
-        epsilon[t] <- sum( p[errors] )
-        alpha[t] <- 0.5 * log( (1-epsilon[t]) / epsilon[t] )
-        if (alpha[t] == 0) {
-                break
-        }
-        for (i in 1:n) {
-                p[i] <- p[i] * exp( -alpha[t] * Ytest[i] * Ypred[i,t] ) 
-        }
-        p <- p / sum(p, na.rm=TRUE)
-}
-A <- as.matrix(alpha)
-Y <- as.matrix(Ypred)
-Y <- t(Y)
-for (i in 1:n) {
-        f_boost[i] <- sign( t(A) %*% Y[,i] )
-}
-CM <- matrix( rep(0), nrow=2, ncol=2, byrow=TRUE, dimnames=list(Cnames, Cnames))
-for (i in 1:n) {
-        r <- Ytest[i]
-        c <- f_boost[i]
-        if (r == -1) r <- 0
-        if (c == -1) c <- 0
-        CM[r+1, c+1] <- CM[r+1, c+1] + 1    
-}
-pred_accuracy <- 0
-if (n > 0) {
-        pred_accuracy <- calcTrace(CM) / n
-}
-## Show results
-cat("\nNumber of test cases = ", n, "\nPrediction accuracy = ", pred_accuracy, "\n")
-cat("CM = \n")
-print(CM)
+n <- length(Ytest)
+#epsilon     <- numeric(T)
+#alpha       <- numeric(T)
+#pred_errors <- integer(T)
+#f_boost     <- integer(n)
 
-## Repeat on the full training set
+result <- boostClassifier(T, X, Y, n)
+epsilon     <- as.vector( result[1] )
+alpha       <- as.vector( result[2] )
+pred_errors <- as.vector( result[3] )
+p           <- as.data.frame( result[4] )
+f_boost     <- as.vector( unlist(result[5]) )
 
+result <- calculatePredictionAccuracy(n, Y, f_boost)
+pred_accuracy <- as.numeric( result[1] )
+C <- result[2]
+cat("\nTesting Accuracy:")
+cat("\nNumber of test cases = ", n, 
+    "\nPrediction accuracy = ", pred_accuracy, 
+    "\nPrediction error = ", 1 - pred_accuracy, "\n")
+cat("C = \n")
+print(C)
 
-## Plot training and test error as a function of iteration t
-
+## Plot test error as a function of iteration t
+## Plot alpha_t and epsilon_t as a function of t
 
 
 ## Indicate the testing accuracy by learning the Bayes classifier on the training set without boosting
 
-
-
-## Plot alpha_t and epsilon_t as a function of t
