@@ -1,68 +1,61 @@
 sampleDiscreteRV <- function(n, W) {
         ## Assumes n is a positive integer
-        ## Assumes W is a discrete k-dimensional probability distribution        
+        ## Assumes W is a discrete k-dimensional probability distribution
         RV <- integer(n)
         Fx <- cumsum(W)
         U  <- runif(n)
-        for (i in 1:n) { 
-                RV[i] <- min( which(Fx >= U[i]) ) 
+        for (i in 1:n) {
+                RV[i] <- min( which(Fx >= U[i]) )
         }
         RV
 }
 
-classifyBayesLinear <- function(Bt) {
-        d <- ncol(Bt) - 1
-        classifier <- integer(d)
-        
-        MU0 <- getMu(-1, Bt)
-        MU1 <- getMu(1, Bt)
-        
-        PI0 <- getPrior(-1, Bt)
-        PI1 <- getPrior(1, Bt)
-        
-        MU    <- getMu("Combined", Bt)
-        SIGMA <- getSigma(Bt[,3:d], t(MU)) 
+classifyBayesLinear <- function(B_t, X, y) {
+        ## B_t is a sample where col1 is the label, col2 is a bias term (1), and cols3,... are features;
+        ## Gaussian parameters for the Bayes classifier are computed from B_t
+        nc  <- ncol(B_t)
+        PI0 <- getPrior(-1, B_t)
+        PI1 <- getPrior(1, B_t)
+        MU0 <- as.matrix( getMu(-1, B_t)[-1] )
+        MU1 <- as.matrix( getMu( 1, B_t)[-1] )
+        MU  <- as.vector( getMu( 0, B_t)[-1] )
+        SIGMA <- getSigma(MU, B_t[,3:nc]) ## exclude label and bias term from SIGMA
         SIGMA_I <- solve(SIGMA)
 
-        X  <- as.matrix(X)
-        y  <- as.integer(y)
-        n  <- nrow(Ytrain)
-        d  <- ncol(X)
-        w0 <- w <- 0
-        p1 <- p2 <- p3 <- p4 <- 0
-                
-        p1 <- -0.5 * t(X - class_MU)
-        p2 <- p1 %*% class_SIGMA_I
-        p3 <- p2 %*% (x - class_MU)
-        p4 <- exp(p3)
-        classifier[k] <- prod(class_prior, 1/sqrt(det(class_SIGMA)), p4)
+        w0 <- 0
+        w0 <- log(PI1/PI0) - 0.5 * t(MU1 + MU0)  ## (1x9)
+        w0 <- w0 %*% SIGMA_I                     ## (1x9)
+        w0 <- w0 %*% (MU1 - MU0)                 ## (1x1)
 
-        winner <- as.integer( which (classifier == max(classifier)) )
-        if ((winner-1) != y) {
-                cat("\n", case, y, winner-1)
-        }
-        as.integer( winner-1 )
+        w   <- SIGMA_I %*% (MU1 - MU0)           ## (9x1)
+        w   <- rbind(w0,w)
+
+        X <- as.matrix(X)
+        f_x <- X %*% w                           ## (1x1)
+        f_x
 }
 
-getMu <- function(class, sample) {
-        if (class != "All") {
-                g1 <- filter( sample, y==class )
-                MU <- as.matrix( summarise_each(g1, funs(mean)) )
+getMu <- function(class, S) {
+        if (class == -1 || class == 1) {
+                S  <- filter(S, S$y==class)
+                MU <- colMeans(S, na.rm=TRUE)
         } else {
-                g1 <- sample
-                MU <- as.matrix( summarise(g1, funs(mean)))
+                MU <- colMeans(S, na.rm=TRUE)
         }
-        MU[1,-1]
+        MU[-1]
 }
 
 getSigma <- function(MU, X) {
-        ## Assumes X has a bias term in the first column (i.e. a column of 1's) 
-        d <- ncol(X) - 1  
-        for ( j in 1:d ) {
-                x[,j] <- x[,j] - mu
+        n  <- nrow(X)
+        X  <- as.matrix(X)
+        X1 <- X
+        MU <- as.matrix(MU)
+        for ( j in 1:ncol(X) ) {
+                mu    <- MU[j]
+                X[,j] <- X[,j] - MU[j]
         }
-        SIGMA <- as.matrix( t(x) %*% x )
-        SIGMA <- SIGMA / class_n
+        SIGMA <- as.matrix( t(X) %*% X )
+        SIGMA <- SIGMA / n
         SIGMA
 }
 
@@ -74,13 +67,13 @@ getPrior <- function(class, sample) {
         PI
 }
 
-fitSoftmaxWML <- function(X = Xtrain, Y = Ytrain) {     
+fitSoftmaxWML <- function(X = Xtrain, Y = Ytrain) {
         W <- matrix(rep(0), nrow=21, ncol=10)
         n <- nrow(X)
         step <- 0.1/n
         X <- cbind(1, X)
-        
-        ## For each class, estimate the optimal vector of coefficients; 
+
+        ## For each class, estimate the optimal vector of coefficients;
         ## X is (n x 21),  W is (21 x 10), L is (21 x 1)
         ind <- rep.int(0, n)
         for (t in 1:1000) {
@@ -96,7 +89,7 @@ fitSoftmaxWML <- function(X = Xtrain, Y = Ytrain) {
                 }
                 s <- as.matrix( X %*% W )
                 L[t] <- sum(s) - log( sum(exp(s)) )
-        }    
+        }
         W
 }
 
@@ -104,7 +97,7 @@ predictSoftmaxY <- function(x, y, w = wml, case) {
         X <- as.matrix(x)
         X <- rbind(1, X)
         W <- as.matrix(w)
-        classifier <- t(W) %*% X         
+        classifier <- t(W) %*% X
         winner <- which (classifier == max(classifier))
         if ((winner-1) != y) {
                 #cat("\n", case, y, winner-1 )
@@ -117,7 +110,7 @@ calcTrace <- function(M) {
         r <- nrow(M)
         Mtrace <- 0
         for (i in 1:r) {
-                Mtrace <- Mtrace + M[i,i] 
+                Mtrace <- Mtrace + M[i,i]
         }
         Mtrace
 }
