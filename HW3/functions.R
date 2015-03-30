@@ -11,8 +11,6 @@ sampleDiscreteRV <- function(n, W) {
 }
 
 boostClassifier <- function(T, Xtest, Ytest, n) {
-        test_set <- cbind(Ytest, Xtest)
-        names(test_set)[1] <- "y"
         p           <- matrix(rep(0), nrow=T, ncol=n)
         p[1,]       <- rep(1/n, n)
         Ypred       <- matrix(nrow=T, ncol=n)
@@ -25,8 +23,7 @@ boostClassifier <- function(T, Xtest, Ytest, n) {
                 if (pred_errors[t] > 0) {
                         p[t,] <- p[t,] / sum(p[t,], na.rm=TRUE)
                         RV  <- sampleDiscreteRV(n, p[t,])
-                        B_t <- test_set[RV,]
-                        #hist(RV)
+                        B_t <- training_set[RV,]
                         for (i in 1:n) {
                                 Ypred[t,i] <- classifyBayesLinear(B_t, Xtest[i,])
                         }
@@ -69,7 +66,7 @@ calculatePredictionAccuracy <- function(n, Y, Ypred) {
 }
 
 classifyBayesLinear <- function(B_t, X0) {
-        ## B_t is a sample: col1 is the label, col2 is a bias term (1), and cols3,... are features;
+        ## B_t is a subsample from the training set: col1 is the label, col2 is a bias term (1), and cols3,... are features;
         ## Gaussian parameters for the Bayes classifier are computed from B_t;
         nc  <- ncol(B_t)
         PI0 <- getPrior(-1, B_t)
@@ -88,7 +85,7 @@ classifyBayesLinear <- function(B_t, X0) {
         w   <- rbind(w0,w)
 
         X0 <- as.matrix(X0)
-        f_x <- X0 %*% w                           ## (1x1)
+        f_x <- X0 %*% w                          ## (1x1)
         sign(f_x)
 }
 
@@ -117,7 +114,6 @@ getSigma <- function(MU, X) {
 }
 
 getPrior <- function(class, sample) {
-        ## To Do: add caching
         n <- nrow(sample)
         g1 <- filter( sample, y==class )
         PI <- as.numeric( summarise(g1, p = n() / n) )
@@ -131,7 +127,6 @@ fitSoftmaxWML <- function(X = Xtrain, Y = Ytrain) {
         X <- cbind(1, X)
 
         ## For each class, estimate the optimal vector of coefficients;
-        ## X is (n x 21),  W is (21 x 10), L is (21 x 1)
         ind <- rep.int(0, n)
         for (t in 1:1000) {
                 for (class in 0:9) {
@@ -156,9 +151,6 @@ predictSoftmaxY <- function(x, y, w = wml, case) {
         W <- as.matrix(w)
         classifier <- t(W) %*% X
         winner <- which (classifier == max(classifier))
-        if ((winner-1) != y) {
-                #cat("\n", case, y, winner-1 )
-        }
         as.integer( winner-1 )
 }
 
