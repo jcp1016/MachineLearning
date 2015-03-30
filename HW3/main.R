@@ -44,7 +44,6 @@ tr_alpha       <- as.vector( unlist(result3[2]) )
 tr_pred_errors <- as.vector( unlist(result3[3]) )
 tr_p           <- as.data.frame( result3[4] )
 tr_f_boost     <- as.vector( unlist(result3[5]) )
-
 result4 <- calculatePredictionAccuracy(n, Ytrain, tr_f_boost)
 tr_pred_accuracy <- as.numeric( result4[1] )
 tr_C <- result4[2]
@@ -63,7 +62,6 @@ te_alpha       <- as.vector( unlist(result1[2]) )
 te_pred_errors <- as.vector( unlist(result1[3]) )
 te_p           <- as.data.frame( result1[4] )
 te_f_boost     <- as.vector( unlist(result1[5]) )
-
 result2 <- calculatePredictionAccuracy(n, Ytest, te_f_boost)
 te_pred_accuracy <- as.numeric( result2[1] )
 te_C <- result2[2]
@@ -77,26 +75,24 @@ print(te_C)
 ## Plot training and testing error as a function of t
 t <- c(1:T)
 p1 <- as.data.frame(tr_pred_errors)
-p2 <- p1 / tr_n
-error_type <- rep("Training error", 1000)
-p3 <- cbind(error_type, p2)
-p4 <- cbind(p3, t)
-names(p4)[2] <- "prediction_error"
-
-p5 <- as.data.frame(te_pred_errors)
-p6 <- p5 / te_n
-error_type <- rep("Testing error", 1000)
-p7 <- cbind(error_type, p6)
-p8 <- cbind(p7, t)
-names(p8)[2] <- "prediction_error"
-
-allp_error <- rbind(p4, p8)
-
-ggplot(p8, aes(x=t, y=prediction_error, group=error_type, colour=error_type)) +
-        geom_point(shape=19, position="identity", alpha=0.5) +
-        scale_color_hue() +
-        theme_bw() +
-        ggtitle("Testing error at iteration t")
+p1 <- p1 / tr_n
+names(p1) <- "training_error"
+p2 <- as.data.frame(te_pred_errors)
+p2 <- p2 / te_n
+pdata <- cbind(p1, p2)
+names(pdata)[2] <- "testing_error"
+pdata <- cbind(pdata, t)
+pdata <- pdata[-1,]  ## remove initialized values
+ggplot(pdata) +
+        geom_point(shape=19, position="identity", alpha=0.5,
+                   aes(x=pdata$t, y=pdata$training_error, colour="Training error")) +
+        geom_point(shape=19, position="identity", alpha=0.5,
+                   aes(x=pdata$t, y=pdata$testing_error, colour="Testing error")) +
+        theme_bw() + scale_fill_hue() +
+        xlab("t") +
+        ylab("") +
+        theme(legend.title=element_blank()) +
+        ggtitle("Prediction error at iteration t")
 ggsave(filename="prediction_error.png")
 
 ## Plot alpha and epsilon as a function of t

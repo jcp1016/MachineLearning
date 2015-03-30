@@ -66,8 +66,9 @@ calculatePredictionAccuracy <- function(n, Y, Ypred) {
 }
 
 classifyBayesLinear <- function(B_t, X0) {
-        ## B_t is a subsample from the training set: col1 is the label, col2 is a bias term (1), and cols3,... are features;
+        ## B_t is a sample from the training set: col1 is the label, col2 is a bias term (1), and cols3,... are features;
         ## Gaussian parameters for the Bayes classifier are computed from B_t;
+        ## X0 is the vector that we are classifying
         nc  <- ncol(B_t)
         PI0 <- getPrior(-1, B_t)
         PI1 <- getPrior(1, B_t)
@@ -96,17 +97,16 @@ getMu <- function(class, S) {
         } else {
                 MU <- colMeans(S, na.rm=TRUE)
         }
-        MU[-1]
+        MU[-1]  ## return the x terms
 }
 
 getSigma <- function(MU, X) {
         n  <- nrow(X)
         X  <- as.matrix(X)
-        X1 <- X
         MU <- as.matrix(MU)
         for ( j in 1:ncol(X) ) {
                 mu    <- MU[j]
-                X[,j] <- X[,j] - MU[j]
+                X[,j] <- X[,j] - mu
         }
         SIGMA <- as.matrix( t(X) %*% X )
         SIGMA <- SIGMA / n
