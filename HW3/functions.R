@@ -19,13 +19,18 @@ boostClassifier <- function(T, Xtest, Ytest, n) {
         pred_errors <- integer(T)
         pred_errors[1] <- 1
         f_boost     <- integer(n)
+        Xtest <- as.matrix(Xtest)
+        W <- matrix(rep(0), nrow=10, ncol=2) ## for online logistic regression classifier
         for (t in 1:T) {
                 if (pred_errors[t] > 0) {
                         p[t,] <- p[t,] / sum(p[t,], na.rm=TRUE)
                         RV  <- sampleDiscreteRV(n, p[t,])
                         B_t <- training_set[RV,]
                         for (i in 1:n) {
-                                Ypred[t,i] <- classifyBayesLinear(B_t, Xtest[i,])
+                                W <- classifyOnline(B_t, 0.1)
+                                fx <- t(X[i,]) %*% W
+                                Ypred[t,i] <- sign( max(fx) )
+                                ##Ypred[t,i] <- classifyBayesLinear(B_t, Xtest[i,])
                         }
                         errors <- which( Ypred[t,] != Ytest )
                         epsilon[t] <- sum( p[t, errors] )
@@ -53,22 +58,20 @@ calculatePredictionAccuracy <- function(n, Y, Ypred) {
         for (i in 1:n) {
                 actual <- Y[i]
                 pred   <- Ypred[i]
-                if (actual == -1) actual <- 0
-                if (pred   == -1) pred   <- 0
+                if (actual == -1) { actual <- 0 }
+                if (pred   == -1) { pred   <- 0 }
                 C[actual+1, pred+1] <- C[actual+1, pred+1] + 1   
                 actual <- pred <- 0
         }
         pred_accuracy <- 0
-        if (n > 0) {
-                pred_accuracy <- calcTrace(C) / n
-        }
+        if (n > 0) { pred_accuracy <- calcTrace(C) / n }
         return(list(pred_accuracy, C))
 }
 
 classifyBayesLinear <- function(B_t, X0) {
-        ## B_t is a sample from the training set: col1 is the label, col2 is a bias term (1), and cols3,... are features;
+        ## B_t is a training set: col1 is the label, col2 is a bias term (1), and cols3,... are features;
         ## Gaussian parameters for the Bayes classifier are computed from B_t;
-        ## X0 is the vector that we are classifying
+        ## X0 is the vector we are classifying
         nc  <- ncol(B_t)
         PI0 <- getPrior(-1, B_t)
         PI1 <- getPrior(1, B_t)
@@ -152,6 +155,34 @@ predictSoftmaxY <- function(x, y, w = wml, case) {
         classifier <- t(W) %*% X
         winner <- which (classifier == max(classifier))
         as.integer( winner-1 )
+}
+
+classifyOnline <- function(S, eta=0.1) {
+        ## S is a data set of size (n x 11)
+        n <- nrow(S)
+        W <- matrix(rep(0), nrow=10, ncol=2)
+        S <- S[sample(n),]  ## randomly order the data row-wise
+        Y <- as.vector( S[,1] )
+        X <- as.matrix( S[,-1] )
+        Xt <- t(X)
+        
+        for (i in 1:n) {
+                if (i < n) {        
+                        x <- as.matrix( X[i,] )      ## (10x1)
+                        xt <- t(x)                   ## (1x10)
+                        yx <- as.matrix( Y[i] * x )  ## (10x1)
+                        w  <- as.matrix( W )         ## (10x2)
+                        wt <- t(w)                   ## (2x10)
+                        
+                        s1 <- as.matrix( xt %*% w )       ## (1x2) 
+                        s1 <- Y[i] * s1                   ## (1x2)
+                        sigma <- 1 / (1 + exp(s1) )       ## (1x2)
+                        s3 <- eta * (1 - sigma)           ## (1x2)
+                        s4 <- yx %*% s3                   ## (10x2)
+                        W <- W + s4                       ## (10x2)
+                }
+        }
+        W
 }
 
 calcTrace <- function(M) {
