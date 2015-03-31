@@ -91,7 +91,7 @@ ggplot(pdata) +
         theme_bw() + scale_fill_hue() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) + 
         ggtitle("Prediction error at iteration t")
-ggsave(filename="prediction_error.png")
+#ggsave(filename="prediction_error.png")
 
 ## Plot alpha as a function of t
 pdata <- as.data.frame(te_alpha)
@@ -103,7 +103,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") + 
         theme(legend.title=element_blank()) +
         ggtitle("Training alpha at iteration t")
-ggsave(filename="training_alpha.png")
+#ggsave(filename="training_alpha.png")
 
 ggplot(pdata) +
         geom_point(shape=19, position="identity", alpha=0.5,
@@ -111,7 +111,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Testing alpha at iteration t")
-ggsave(filename="testing_alpha.png")
+#ggsave(filename="testing_alpha.png")
 
 ## Plot epsilon as a function of t
 pdata <- as.data.frame(te_epsilon)
@@ -172,18 +172,37 @@ ggsave(filename="part2_p3.png")
 
 ## Part 3
 ## Run on the training set
-result         <- boostClassifier(T, Xtrain, Ytrain, tr_n)
-tr_epsilon     <- as.vector( unlist(result[1]) )
-tr_alpha       <- as.vector( unlist(result[2]) )
-tr_pred_errors <- as.vector( unlist(result[3]) )
-tr_p           <- as.data.frame( result[4] )
-tr_f_boost     <- as.vector( unlist(result[5]) )
-result4 <- calculatePredictionAccuracy( tr_n, Ytrain, tr_f_boost )
-tr_pred_accuracy <- as.numeric( result4[1] )
-tr_C <- result4[2]
+##tr_n <- length(Ytrain)
+result1         <- boostClassifier(T, Xtrain, Ytrain, 500)
+tr_epsilon     <- as.vector( unlist(result1[1]) )
+tr_alpha       <- as.vector( unlist(result1[2]) )
+tr_pred_errors <- as.vector( unlist(result1[3]) )
+tr_p           <- as.data.frame( result1[4] )
+tr_f_boost     <- as.vector( unlist(result1[5]) )
+result2 <- calculatePredictionAccuracy(tr_n, Ytrain, tr_f_boost)
+tr_pred_accuracy <- as.numeric( result2[1] )
+tr_C <- result2[2]
 cat("\nTraining Accuracy:")
-cat("\nNumber of test cases = ", n, 
+cat("\nNumber of test cases = ", tr_n, 
     "\nPrediction accuracy = ", tr_pred_accuracy, 
     "\nPrediction error = ", 1 - tr_pred_accuracy, "\n")
 cat("C = \n")
 print(tr_C)
+
+## Run on the test set
+te_n <- length(Ytest)
+result3        <- boostClassifier(T, Xtest, Ytest, te_n)
+te_epsilon     <- as.vector( unlist(result3[1]) )
+te_alpha       <- as.vector( unlist(result3[2]) )
+te_pred_errors <- as.vector( unlist(result3[3]) )
+te_p           <- as.data.frame( result3[4] )
+te_f_boost     <- as.vector( unlist(result3[5]) )
+result4 <- calculatePredictionAccuracy(te_n, Ytest, te_f_boost)
+te_pred_accuracy <- as.numeric( result4[1] )
+te_C <- result4[2]
+cat("\nTesting Accuracy:")
+cat("\nNumber of test cases = ", te_n, 
+    "\nPrediction accuracy = ", te_pred_accuracy, 
+    "\nPrediction error = ", 1 - te_pred_accuracy, "\n")
+cat("C = \n")
+print(te_C)

@@ -10,7 +10,7 @@ sampleDiscreteRV <- function(n, W) {
         RV
 }
 
-boostClassifier <- function(T, Xtest, Ytest, n) {
+boostClassifier <- function(T, X, Y, n) {
         p           <- matrix(rep(0), nrow=T, ncol=n)
         p[1,]       <- rep(1/n, n)
         Ypred       <- matrix(nrow=T, ncol=n)
@@ -19,7 +19,7 @@ boostClassifier <- function(T, Xtest, Ytest, n) {
         pred_errors <- integer(T)
         pred_errors[1] <- 1
         f_boost     <- integer(n)
-        Xtest <- as.matrix(Xtest)
+        X <- as.matrix(X)
         W <- matrix(rep(0), nrow=10, ncol=2) ## for online logistic regression classifier
         for (t in 1:T) {
                 if (pred_errors[t] > 0) {
@@ -29,10 +29,10 @@ boostClassifier <- function(T, Xtest, Ytest, n) {
                         for (i in 1:n) {
                                 W <- classifyOnline(B_t, 0.1)
                                 fx <- t(X[i,]) %*% W
-                                Ypred[t,i] <- sign( max(fx) )
+                                Ypred[t,i] <- sign( sum(fx) )
                                 ##Ypred[t,i] <- classifyBayesLinear(B_t, Xtest[i,])
                         }
-                        errors <- which( Ypred[t,] != Ytest )
+                        errors <- which( Ypred[t,] != Y )
                         epsilon[t] <- sum( p[t, errors] )
                         if (epsilon[t] == 0) {
                                 next
@@ -40,7 +40,7 @@ boostClassifier <- function(T, Xtest, Ytest, n) {
                         alpha[t] <- 0.5 * log( (1-epsilon[t]) / epsilon[t] )
                         if (t < T) {
                                 for (i in 1:n) {
-                                        p[t+1,i] <- p[t,i] * exp(-alpha[t] * Ytest[i] * Ypred[t,i]) 
+                                        p[t+1,i] <- p[t,i] * exp(-alpha[t] * Y[i] * Ypred[t,i]) 
                                         f_boost[i] <- sign( sum(alpha[1:t] %*% Ypred[1:t,i], na.rm=TRUE) )
                                 }
                                 pred_errors[t+1] <- length( which( f_boost != Ytest ) )
@@ -167,20 +167,18 @@ classifyOnline <- function(S, eta=0.1) {
         Xt <- t(X)
         
         for (i in 1:n) {
-                if (i < n) {        
-                        x <- as.matrix( X[i,] )      ## (10x1)
-                        xt <- t(x)                   ## (1x10)
-                        yx <- as.matrix( Y[i] * x )  ## (10x1)
-                        w  <- as.matrix( W )         ## (10x2)
-                        wt <- t(w)                   ## (2x10)
-                        
-                        s1 <- as.matrix( xt %*% w )       ## (1x2) 
-                        s1 <- Y[i] * s1                   ## (1x2)
-                        sigma <- 1 / (1 + exp(s1) )       ## (1x2)
-                        s3 <- eta * (1 - sigma)           ## (1x2)
-                        s4 <- yx %*% s3                   ## (10x2)
-                        W <- W + s4                       ## (10x2)
-                }
+                x <- as.matrix( X[i,] )      ## (10x1)
+                xt <- t(x)                   ## (1x10)
+                yx <- as.matrix( Y[i] * x )  ## (10x1)
+                w  <- as.matrix( W )         ## (10x2)
+                wt <- t(w)                   ## (2x10)
+
+                s1 <- as.matrix( xt %*% w )       ## (1x2) 
+                s1 <- -Y[i] * s1                   ## (1x2)
+                sigma <- 1 / (1 + exp(s1) )       ## (1x2)
+                s3 <- eta * (1 - sigma)           ## (1x2)
+                s4 <- yx %*% s3                   ## (10x2)
+                W <- W + s4                       ## (10x2)
         }
         W
 }
