@@ -31,22 +31,22 @@ for (n in c(100, 200, 300, 400)) {
         ggsave(filename=fn)
 }
 
+## Part 2
+## Implement a boosted linear Bayes classifier with sampling;
+## Gaussian parameters are calculated from "boostrap" samples B_t
 T <- 1000
 
-## Run on training set
-tr_n <- 500
-result1         <- boostClassifier(T, Xtrain, Ytrain, tr_n)
-result <- result1
-tr_epsilon     <- as.vector( unlist(result[1]) )
-tr_alpha       <- as.vector( unlist(result[2]) )
-tr_pred_errors <- as.vector( unlist(result[3]) )
-tr_p           <- as.data.frame( result[4] )
-tr_f_boost     <- as.vector( unlist(result[5]) )
-
-result2 <- calculatePredictionAccuracy(tr_n, Ytrain, tr_f_boost)
-result <- result2
-tr_pred_accuracy <- as.numeric( result[1] )
-tr_C <- result[2]
+## Run on the training set
+tr_n <- length(Ytrain)
+result3         <- boostClassifier(T, Xtrain, Ytrain, tr_n)
+tr_epsilon     <- as.vector( unlist(result3[1]) )
+tr_alpha       <- as.vector( unlist(result3[2]) )
+tr_pred_errors <- as.vector( unlist(result3[3]) )
+tr_p           <- as.data.frame( result3[4] )
+tr_f_boost     <- as.vector( unlist(result3[5]) )
+result4 <- calculatePredictionAccuracy(tr_n, Ytrain, tr_f_boost)
+tr_pred_accuracy <- as.numeric( result4[1] )
+tr_C <- result4[2]
 cat("\nTraining Accuracy:")
 cat("\nNumber of test cases = ", n,
     "\nPrediction accuracy = ", tr_pred_accuracy,
@@ -54,20 +54,17 @@ cat("\nNumber of test cases = ", n,
 cat("C = \n")
 print(tr_C)
 
-## Run on test set
-te_n <- 183
-result3        <- boostClassifier(T, Xtest, Ytest, te_n)
-result         <- result3
-te_epsilon     <- as.vector( unlist(result[1]) )
-te_alpha       <- as.vector( unlist(result[2]) )
-te_pred_errors <- as.vector( unlist(result[3]) )
-te_p           <- as.data.frame( result[4] )
-te_f_boost     <- as.vector( unlist(result[5]) )
-
-result4 <- calculatePredictionAccuracy(te_n, Ytest, te_f_boost)
-result  <- result4
-te_pred_accuracy <- as.numeric( result[1] )
-te_C <- result[2]
+## Run on the test set
+te_n <- length(Ytest)
+result1        <- boostClassifier(T, Xtest, Ytest, te_n)
+te_epsilon     <- as.vector( unlist(result1[1]) )
+te_alpha       <- as.vector( unlist(result1[2]) )
+te_pred_errors <- as.vector( unlist(result1[3]) )
+te_p           <- as.data.frame( result1[4] )
+te_f_boost     <- as.vector( unlist(result1[5]) )
+result2 <- calculatePredictionAccuracy(te_n, Ytest, te_f_boost)
+te_pred_accuracy <- as.numeric( result2[1] )
+te_C <- result2[2]
 cat("\nTesting Accuracy:")
 cat("\nNumber of test cases = ", te_n,
     "\nPrediction accuracy = ", te_pred_accuracy,
@@ -94,7 +91,7 @@ ggplot(pdata) +
         theme_bw() + scale_fill_hue() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Prediction error at iteration t")
-#ggsave(filename="pt3_prediction_error.png")
+ggsave(filename="prediction_error.png")
 
 ## Plot alpha as a function of t
 pdata <- as.data.frame(te_alpha)
@@ -106,7 +103,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Training alpha at iteration t")
-#ggsave(filename="pt3_training_alpha.png")
+ggsave(filename="training_alpha.png")
 
 ggplot(pdata) +
         geom_point(shape=19, position="identity", alpha=0.5,
@@ -114,7 +111,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Testing alpha at iteration t")
-ggsave(filename="pt3_testing_alpha.png")
+ggsave(filename="testing_alpha.png")
 
 ## Plot epsilon as a function of t
 pdata <- as.data.frame(te_epsilon)
@@ -126,7 +123,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Training epsilon at iteration t")
-ggsave(filename="pt3_training_epsilon.png")
+ggsave(filename="training_epsilon.png")
 
 ggplot(pdata) +
         geom_point(shape=19, position="identity", alpha=0.5,
@@ -134,7 +131,7 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") +
         theme(legend.title=element_blank()) +
         ggtitle("Testing epsilon at iteration t")
-ggsave(filename="pt3_testing_epsilon.png")
+ggsave(filename="testing_epsilon.png")
 
 ## Indicate the testing accuracy by learning the Bayes classifier on the training set without boosting
 n <- length(Ytest)
@@ -150,14 +147,6 @@ cat("\nNumber of test cases = ", n,
     "\nPrediction error = ", 1 - pred_accuracy, "\n")
 cat("C = \n")
 print(C)
-
-##Indicate the testing accuracy by learning the logistic regression classifier without boosting
-wml <- fit_softmax_wml(Xtrain, Ytrain)
-n <- length(Ytest)
-Ypred  <- vector(mode="integer", length=n)
-for (i in 1:n) {
-        Ypred[i] <- predict_softmax_Y( Xtest[i,], Ytest[i], wml, i )
-}
 
 ## Plot p as a function of t for three data points
 pdata <- as.data.frame(te_p[,11])
@@ -180,3 +169,38 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") + theme(legend.title=element_blank()) +
         scale_fill_hue() + ggtitle("obs 400 at iteration t")
 ggsave(filename="part2_p3.png")
+
+## Part 3
+## Run on the training set
+result1         <- boostClassifier(T, Xtrain, Ytrain, 500)
+tr_epsilon     <- as.vector( unlist(result1[1]) )
+tr_alpha       <- as.vector( unlist(result1[2]) )
+tr_pred_errors <- as.vector( unlist(result1[3]) )
+tr_p           <- as.data.frame( result1[4] )
+tr_f_boost     <- as.vector( unlist(result1[5]) )
+result2 <- calculatePredictionAccuracy( tr_n, Ytrain, tr_f_boost )
+tr_pred_accuracy <- as.numeric( result2[1] )
+tr_C <- result2[2]
+cat("\nTraining Accuracy:")
+cat("\nNumber of test cases = ", n,
+    "\nPrediction accuracy = ", tr_pred_accuracy,
+    "\nPrediction error = ", 1 - tr_pred_accuracy, "\n")
+cat("C = \n")
+print(tr_C)
+
+## Run on the test set
+result3         <- boostClassifierClassifier(T, Xtest, Ytest, 183)
+te_epsilon     <- as.vector( unlist(result3[1]) )
+te_alpha       <- as.vector( unlist(result3[2]) )
+te_pred_errors <- as.vector( unlist(result3[3]) )
+te_p           <- as.data.frame( result3[4] )
+te_f_boost     <- as.vector( unlist(result3[5]) )
+result4 <- calculatePredictionAccuracy(te_n, Ytest, te_f_boost)
+te_pred_accuracy <- as.numeric( result4[1] )
+te_C <- result4[2]
+cat("\nTesting Accuracy:")
+cat("\nNumber of test cases = ", te_n,
+    "\nPrediction accuracy = ", te_pred_accuracy,
+    "\nPrediction error = ", 1 - te_pred_accuracy, "\n")
+cat("C = \n")
+print(te_C)
