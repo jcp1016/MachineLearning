@@ -1,6 +1,9 @@
 sampleDiscreteRV <- function(n, W) {
-        ## Assumes n is a positive integer,
-        ## and W is a discrete k-dimensional probability distribution
+        ## Args: 
+        ## n is a positive integer
+        ## W is a discrete k-dimensional probability distribution
+        ##
+        ## Returns a vector of n integers whose distribution is the cdf of W
         RV <- integer(n)
         Fx <- cumsum(W)
         U  <- runif(n)
@@ -10,7 +13,11 @@ sampleDiscreteRV <- function(n, W) {
         RV
 }
 
-boostClassifier <- function(T, X, Y, n) {
+boostClassifier <- function(T, X, Y) {
+        ## T is the number of boosting iterations
+        ## X is the training or test set
+        ## Y are the training or test labels
+        n           <- length(Y)
         p           <- matrix(rep(0), nrow=T, ncol=n)
         p[1,]       <- rep(1/n, n)
         Ypred       <- matrix(nrow=T, ncol=n)
@@ -43,7 +50,7 @@ boostClassifier <- function(T, X, Y, n) {
                                         p[t+1,i] <- p[t,i] * exp(-alpha[t] * Y[i] * Ypred[t,i]) 
                                         f_boost[i] <- sign( sum(alpha[1:t] %*% Ypred[1:t,i], na.rm=TRUE) )
                                 }
-                                pred_errors[t+1] <- length( which( f_boost != Ytest ) )
+                                pred_errors[t+1] <- length( which( f_boost != Y ) )
                         }
                 } 
         }
@@ -124,15 +131,15 @@ getPrior <- function(class, sample) {
 }
 
 fitSoftmaxWML <- function(X = Xtrain, Y = Ytrain) {
-        W <- matrix(rep(0), nrow=21, ncol=10)
-        n <- nrow(X)
+        n <- length(Y)
+        W <- matrix(rep(0), nrow=10, ncol=2)
         step <- 0.1/n
-        X <- cbind(1, X)
+        #X <- cbind(1, X)
 
         ## For each class, estimate the optimal vector of coefficients;
         ind <- rep.int(0, n)
         for (t in 1:1000) {
-                for (class in 0:9) {
+                for (class in c(-1,1)) {
                         for (j in 1:n) {
                                 ind[j] <- as.integer( Y[j] == class )
                         }
