@@ -1,14 +1,21 @@
 require("ggplot2")
 require("ggthemes")
-source("functions.R")
+source("km_functions.R")
 
 ## Generate 500 observations from a mixture of three Gaussians on R2 with PI = [0.2, 0.5, 0.3]
-N <- 500
+N  <- 500
 MU <- list( c(0,0), c(3,0), c(0,3) ) 
 SIGMA <- matrix( c(1,0,0,1), nrow=2, byrow=TRUE )
 PI <- c(0.2, 0.5, 0.3)
-X  <- genDataFromGaussMixture(2, N, MU, SIGMA, PI)
+results <- genDataFromGaussMixture(2, N, MU, SIGMA, PI)
+X <- unlist( results[1] )
+X <- matrix(X, nrow=N, byrow=TRUE)
+g <- unlist( results[2] )
+ggplot(as.data.frame(g), aes(x=g)) +
+        geom_histogram(binwidth=1, color="black", fill="white") +
+        scale_x_discrete()
 rm(MU)
+rm(SIGMA)
 
 ## Run k-means 20 times for each choice of K
 K <- 5
