@@ -47,12 +47,12 @@ boostClassifier <- function(T, X, Y) {
                         alpha[t] <- 0.5 * log( (1-epsilon[t]) / epsilon[t] )
                         if (t < T) {
                                 for (i in 1:n) {
-                                        p[t+1,i] <- p[t,i] * exp(-alpha[t] * Y[i] * Ypred[t,i]) 
+                                        p[t+1,i] <- p[t,i] * exp(-alpha[t] * Y[i] * Ypred[t,i])
                                         f_boost[i] <- sign( sum(alpha[1:t] %*% Ypred[1:t,i], na.rm=TRUE) )
                                 }
                                 pred_errors[t+1] <- length( which( f_boost != Y ) )
                         }
-                } 
+                }
         }
         return( list(epsilon, alpha, pred_errors, p, f_boost) )
 }
@@ -60,14 +60,14 @@ boostClassifier <- function(T, X, Y) {
 calculatePredictionAccuracy <- function(n, Y, Ypred) {
         ## Assumes each Y value is -1 or 1
         C_names <- as.character(c(-1,1))
-        C <- matrix( rep(0), nrow=2, ncol=2, dimnames=list(C_names, C_names)) 
+        C <- matrix( rep(0), nrow=2, ncol=2, dimnames=list(C_names, C_names))
         actual <- pred <- 0
         for (i in 1:n) {
                 actual <- Y[i]
                 pred   <- Ypred[i]
                 if (actual == -1) { actual <- 0 }
                 if (pred   == -1) { pred   <- 0 }
-                C[actual+1, pred+1] <- C[actual+1, pred+1] + 1   
+                C[actual+1, pred+1] <- C[actual+1, pred+1] + 1
                 actual <- pred <- 0
         }
         pred_accuracy <- 0
@@ -172,7 +172,7 @@ classifyOnline <- function(S, eta=0.1) {
         Y <- as.vector( S[,1] )
         X <- as.matrix( S[,-1] )
         Xt <- t(X)
-        
+
         for (i in 1:n) {
                 x <- as.matrix( X[i,] )      ## (10x1)
                 xt <- t(x)                   ## (1x10)
@@ -180,7 +180,7 @@ classifyOnline <- function(S, eta=0.1) {
                 w  <- as.matrix( W )         ## (10x2)
                 wt <- t(w)                   ## (2x10)
 
-                s1 <- as.matrix( xt %*% w )       ## (1x2) 
+                s1 <- as.matrix( xt %*% w )       ## (1x2)
                 s1 <- -Y[i] * s1                   ## (1x2)
                 sigma <- 1 / (1 + exp(s1) )       ## (1x2)
                 s3 <- eta * (1 - sigma)           ## (1x2)
