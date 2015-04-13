@@ -60,8 +60,9 @@ for (t in 1:T) {
                 }
                 p4 <- M %*% V
                 U[i,] <- p4 %*% p3 ## 1xd
+                L[t] <- L[t] - c1 * sum((M[1,] - (U[i,] %*% t(V)))^2)  
         }
-        L[t] <- c1 * sum((M[1,] - (U[i,] %*% t(V)))^2) - c2 * sum(U^2) - c2 * sum(V^2) 
+        L[t] <- L[t] - c2 * sum(U^2) - c2 * sum(V^2) 
         cat("L",t,"=", L[t], " ")
         fn <- paste0("U_", t)
         write.table(U, fn)
