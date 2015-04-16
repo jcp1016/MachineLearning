@@ -1,0 +1,147 @@
+movie_id                                              title
+1       334                                      U Turn (1997)
+2       118                                     Twister (1996)
+3      1521                               Mr. Wonderful (1993)
+4       249 Austin Powers: International Man of Mystery (1997)
+5       801                           Air Up There, The (1994)
+6      1440                               Above the Rim (1994)
+7       323                                Dante's Peak (1997)
+8       289                                       Evita (1996)
+9       109     Mystery Science Theater 3000: The Movie (1996)
+10      608                                  Spellbound (1945)
+
+
+movie_id                                   title
+1      1349                  Mille bolle blu (1993)
+2      1565                            Daens (1992)
+3       162                   On Golden Pond (1981)
+4      1434                    Shooting Fish (1997)
+5       882                Washington Square (1997)
+6       243                    Jungle2Jungle (1997)
+7      1360 Sexual Life of the Belgians, The (1994)
+8      1394               Swept from the Sea (1997)
+9      1574                   Pharaoh's Army (1995)
+10     1075          Man of No Importance, A (1994)
+
+
+movie_id                                      title
+1      1555 Secret Adventures of Tom Thumb, The (1993)
+2       858               Amityville: Dollhouse (1996)
+3      1178                         Major Payne (1994)
+4       745                   Ruling Class, The (1972)
+5      1465         Last Summer in the Hamptons (1995)
+6       242                               Kolya (1996)
+7       137                           Big Night (1996)
+8      1631                      Slingshot, The (1993)
+9       953                     Unstrung Heroes (1995)
+10     1578                 Collectionneuse, La (1967)
+
+movie_id                         title
+1       959     Dazed and Confused (1993)
+2       977        Substitute, The (1996)
+3        27               Bad Boys (1995)
+4       711 Substance of Fire, The (1996)
+5       734        Made in America (1993)
+6      1348    Every Other Weekend (1990)
+7       685     Executive Decision (1996)
+8       204     Back to the Future (1985)
+9       243          Jungle2Jungle (1997)
+10      260          Event Horizon (1997)
+
+movie_id                                         title
+1       274                                Sabrina (1995)
+2       703                           Widows' Peak (1994)
+3      1014 Romy and Michele's High School Reunion (1997)
+4      1156                                  Cyclo (1995)
+5       768                                 Casper (1995)
+6        98              Silence of the Lambs, The (1991)
+7      1270                        Life with Mikey (1993)
+8       648                         Quiet Man, The (1952)
+9        45                    Eat Drink Man Woman (1994)
+10      366                        Dangerous Minds (1995)
+
+ movie_id                        title
+1      1470      Gumby: The Movie (1995)
+2       134          Citizen Kane (1941)
+3       703          Widows' Peak (1994)
+4       924          White Squall (1996)
+5      1184 Endless Summer 2, The (1994)
+6       417      Parent Trap, The (1961)
+7       348    Desperate Measures (1998)
+8       360            Wonderland (1997)
+9      1146         Calendar Girl (1993)
+10     1545     Frankie Starlight (1995)
+
+movie_id                               title
+1      1636          Brothers in Trouble (1995)
+2       141 20,000 Leagues Under the Sea (1954)
+3         9             Dead Man Walking (1995)
+4      1538                  All Over Me (1997)
+5       247 Turbo: A Power Rangers Movie (1997)
+6       479                      Vertigo (1958)
+7      1308                    Babyfever (1994)
+8       267                             unknown
+9      1662                  Rough Magic (1995)
+10      774                Prophecy, The (1995)
+
+movie_id                                     title
+1        22                         Braveheart (1995)
+2       593                         Stalingrad (1993)
+3       214              Pink Floyd - The Wall (1982)
+4       271                  Starship Troopers (1997)
+5       782                      Little Odessa (1994)
+6      1524                      Kaspar Hauser (1993)
+7       384 Naked Gun 33 1/3: The Final Insult (1994)
+8      1572            Wend Kuuni (God's Gift) (1982)
+9      1040                      Two if by Sea (1996)
+10      805           Manhattan Murder Mystery (1993)
+
+ movie_id                                                                        title
+1       177                                       Good, The Bad and The Ugly, The (1966)
+2      1332 My Life and Times With Antonin Artaud (En compagnie d'Antonin Artaud) (1993)
+3       730                                       Queen Margot (Reine Margot, La) (1994)
+4      1273                                                        Color of Night (1994)
+5      1381                                                          Losing Chase (1996)
+6      1250                                   Best of the Best 3: No Turning Back (1995)
+7        38                                                              Net, The (1995)
+8       331                                                             Edge, The (1997)
+9       885                                                              Phantoms (1998)
+10      217                                                 Bram Stoker's Dracula (1992)
+
+movie_id                               title
+1       767               Addiction, The (1995)
+2      1060 Adventures of Pinocchio, The (1996)
+3       157                      Platoon (1986)
+4      1173                        Bliss (1997)
+5      1453         Angel on My Shoulder (1946)
+6      1549                    Dream Man (1995)
+7        81         Hudsucker Proxy, The (1994)
+8       100                        Fargo (1996)
+9       162               On Golden Pond (1981)
+10      605         Meet Me in St. Louis (1944)
+
+movie_id                                        title
+1      1525           Object of My Affection, The (1998)
+2       289                                 Evita (1996)
+3       750                               Amistad (1997)
+4       151 Willy Wonka and the Chocolate Factory (1971)
+5       854                             Bad Taste (1987)
+6       925                         Unforgettable (1996)
+7        65           What's Eating Gilbert Grape (1993)
+8      1283                            Out to Sea (1997)
+9      1675                        Sunchaser, The (1996)
+10      495           Around the World in 80 Days (1956)
+
+ movie_id                              title
+1      1664     8 Heads in a Duffel Bag (1997)
+2      1088                 Double Team (1997)
+3       475               Trainspotting (1996)
+4        34        Doom Generation, The (1995)
+5       398           Super Mario Bros. (1993)
+6      1612            Leading Man, The (1996)
+7        70 Four Weddings and a Funeral (1994)
+8        56                Pulp Fiction (1994)
+9       433                    Heathers (1989)
+10      460         Crossing Guard, The (1995)
+
+

@@ -1,10 +1,10 @@
 require("ggplot2")
 require("ggthemes")
-source("km_functions.R")
+source("functions.R")
 
 ## Generate 500 observations from a mixture of three Gaussians on R2 with PI = [0.2, 0.5, 0.3]
 N  <- 500
-MU <- list( c(0,0), c(3,0), c(0,3) ) 
+MU <- list( c(0,0), c(3,0), c(0,3) )
 SIGMA <- matrix( c(1,0,0,1), nrow=2, byrow=TRUE )
 PI <- c(0.2, 0.5, 0.3)
 results <- genDataFromGaussMixture(2, N, MU, SIGMA, PI)
@@ -26,14 +26,14 @@ C  <- matrix(rep(0), nrow=T, ncol=N)
 L1 <- L2 <- numeric(T)
 MU[1,] <- sample(X, K, replace=FALSE)  ## initialize MU with K random points from X
 for (t in 1:T) {
-        C[t,] <- assignToCluster(X, MU[t,], K) 
+        C[t,] <- assignToCluster(X, MU[t,], K)
         L1[t] <- calcObjFunction(X, MU[t,], C[t,], K)
         if (t < T) {
                 MU[t+1,] <- updateCentroids(X, C[t,], K, t)
                 L2[t]    <- calcObjFunction(X, MU[t+1,], C[t,], K)
         } else {
                 L2[t] <- L1[t]
-        }   
+        }
 }
 
 ## Plot the objective function
@@ -47,8 +47,8 @@ ggplot(pdata) +
         geom_point(shape=19, position="identity", alpha=1, cex=2.5,
                    aes(x=pdata$t, y=pdata$L2, colour="Update")) +
         theme_bw() + scale_fill_hue() + xlab("iteration") + ylab("") +
-        scale_x_discrete() + 
-        theme(legend.title=element_blank()) + 
+        scale_x_discrete() +
+        theme(legend.title=element_blank()) +
         ggtitle(paste0("Objective function at each iteration\nK = ",K))
 fn <- paste0("L_K",K,".png")
 ggsave(filename=fn)
