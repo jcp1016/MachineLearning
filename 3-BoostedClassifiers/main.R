@@ -82,7 +82,6 @@ te_C <- result[2]
 cat("\nTesting Accuracy:")
 cat("\nNumber of test cases = ", te_n,
     "\nPrediction accuracy = ", te_pred_accuracy,
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
     "\nPrediction error = ", 1 - te_pred_accuracy, "\n")
 cat("C = \n")
 print(te_C)
