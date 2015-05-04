@@ -31,35 +31,22 @@ for (n in c(100, 200, 300, 400)) {
         ggsave(filename=fn)
 }
 
-<<<<<<< HEAD
-T <- 1000 
-
-## Run on the training set
-result1         <- boostClassifier(T, Xtrain, Ytrain)
-=======
 T <- 1000
 
 ## Run on training set
 tr_n <- 500
-result1         <- boostClassifier(T, Xtrain, Ytrain, tr_n)
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
-result <- result1
+result1        <- boostClassifier(T, Xtrain, Ytrain, tr_n)
+result         <- result1
 tr_epsilon     <- as.vector( unlist(result[1]) )
 tr_alpha       <- as.vector( unlist(result[2]) )
 tr_pred_errors <- as.vector( unlist(result[3]) )
 tr_p           <- as.data.frame( result[4] )
-<<<<<<< HEAD
 tr_f_boost     <- as.vector( unlist(result3[5]) )
 
 n <- length(Ytrain)
-result2 <- calculatePredictionAccuracy(n, Ytrain)
-result  <- result2
-=======
-tr_f_boost     <- as.vector( unlist(result[5]) )
 
 result2 <- calculatePredictionAccuracy(tr_n, Ytrain, tr_f_boost)
 result <- result2
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
 tr_pred_accuracy <- as.numeric( result[1] )
 tr_C <- result[2]
 cat("\nTraining Accuracy:")
@@ -69,22 +56,16 @@ cat("\nNumber of test cases = ", n,
 cat("C = \n")
 print(tr_C)
 
-<<<<<<< HEAD
-## Run on the test set
-result3        <- boostClassifier(T, Xtest, Ytest)
-result <= result3
-=======
 ## Run on test set
 te_n <- 183
 result3        <- boostClassifier(T, Xtest, Ytest, te_n)
 result         <- result3
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
 te_epsilon     <- as.vector( unlist(result[1]) )
 te_alpha       <- as.vector( unlist(result[2]) )
 te_pred_errors <- as.vector( unlist(result[3]) )
 te_p           <- as.data.frame( result[4] )
 te_f_boost     <- as.vector( unlist(result[5]) )
-<<<<<<< HEAD
+
 n <- length(Ytest)
 result2 <- calculatePredictionAccuracy(n, Ytest, te_f_boost)
 result <- result2
@@ -93,7 +74,6 @@ te_C <- result[2]
 cat("\nTesting Accuracy:")
 cat("\nNumber of test cases = ", n, 
     "\nPrediction accuracy = ", te_pred_accuracy, 
-=======
 
 result4 <- calculatePredictionAccuracy(te_n, Ytest, te_f_boost)
 result  <- result4
@@ -183,24 +163,6 @@ cat("\nNumber of test cases = ", n,
 cat("C = \n")
 print(C)
 
-<<<<<<< HEAD
-## Indicate the testing accuracy by learning a logistic regression classifier on the training set without boosting
-wml <- fitSoftmaxWML(Xtrain, Ytrain)
-n <- nrow(Ytest)
-Ypred  <- vector(mode="integer", length=n)
-for (i in 1:n) {
-        Ypred[i] <- predictSoftmaxY( Xtest[i,], Ytest[i], wml, i )
-}
-result <- calculatePredictionAccuracy(n, Ytest, Ypred)
-pred_accuracy <- as.numeric( result[1] )
-C <- result[2]
-cat("\nTesting Accuracy:")
-cat("\nNumber of test cases = ", n, 
-    "\nPrediction accuracy = ", pred_accuracy, 
-    "\nPrediction error = ", 1 - pred_accuracy, "\n")
-cat("C = \n")
-print(C)
-=======
 ##Indicate the testing accuracy by learning the logistic regression classifier without boosting
 wml <- fit_softmax_wml(Xtrain, Ytrain)
 n <- length(Ytest)
@@ -208,7 +170,6 @@ Ypred  <- vector(mode="integer", length=n)
 for (i in 1:n) {
         Ypred[i] <- predict_softmax_Y( Xtest[i,], Ytest[i], wml, i )
 }
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
 
 ## Plot p as a function of t for three data points
 pdata <- as.data.frame(te_p[,11])
@@ -231,7 +192,3 @@ ggplot(pdata) +
         theme_bw() + xlab("t") + ylab("") + theme(legend.title=element_blank()) +
         scale_fill_hue() + ggtitle("obs 400 at iteration t")
 ggsave(filename="part2_p3.png")
-<<<<<<< HEAD
-
-=======
->>>>>>> 9064fe620eac6f10671b3295c8317c300744cfb5
