@@ -1,4 +1,6 @@
 require("dplyr")
+require("foreach")
+require("parallel")
 #source("mf_functions.R")
 
 lambda <- 10
@@ -11,11 +13,14 @@ T <- 100
 setwd("./movies_csv")
 ratings <- read.csv("ratings.txt", stringsAsFactors=FALSE, check.names=FALSE)
 ratings_test <- read.csv("ratings_test.txt", stringsAsFactors=FALSE, check.names=FALSE)
+
 names(ratings) <- c("user_id", "movie_id", "rating")
 names(ratings_test) <- c("user_id", "movie_id", "rating")
+
 movies <- read.csv("movies.txt", stringsAsFactors=FALSE, header=FALSE, sep="@")
 movies <- cbind(c(1:nrow(movies)), movies)
 names(movies) <- c("movie_id", "movie_title")
+
 users <- unique(ratings$user_id)
 
 N1 <- length(users)
@@ -46,7 +51,7 @@ p1  <- (lambda*sigma2*I) # 20x20
 T <- 10
 setwd("~/Columbia/MachineLearning/HW4/output")
 L <- numeric(T)
-for (t in 1:T) {
+for (t in 21:40) {
         L[t] <- 0
         for (i in 1:N1) {
                 ind <- which( OMEGA_u[i,] == 1 )
@@ -85,6 +90,5 @@ for (t in 1:T) {
                 V[j,] <- p4 %*% p3 ## 1xd
         }
         fn <- paste0("V_", t)
-        write.table(V, fn)
-        
+        write.table(V, fn)       
 }
