@@ -1,2 +1,2 @@
 # MachineLearning
-Coding assignments for a Columbia DSI Machine Learning course
+Projects for a graduate level course in Machine Learning at Columbia University
