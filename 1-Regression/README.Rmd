@@ -1,0 +1,84 @@
+---
+title: "Using least squares regression with basis expansion to predict miles per gallon"
+author: "Janet Prumachuk"
+---
+##Data
+```{r, echo=FALSE}
+setwd("./data_csv-2")
+y <- read.csv("y.txt", header = FALSE)
+names(y) <- "mpg"
+
+X <- read.csv("X.txt", header=FALSE)
+names(X) <- c("intercept_term",
+              "number_of_cylinders",
+              "displacement",
+              "horsepower",
+              "weight",
+              "acceleration",
+              "model_year")
+alldata <- cbind(y,X)
+setwd("../")
+```
+
+##Part 1
+We are asked to predict the miles per gallon a car will get using six quantities about that car.  The dataset contains 392 instances of different cars, each containing a 6-dimensional feature vector. We add an intercept term and set it to 1.  The source code is available on [GitHub]{insert URL}.
+
+(a) We randomly split the dataset into 20 testing examples and 372 training examples.  Using the training data only, we fit a linear regression model using least squares and show the model coefficients.
+
+```{r, echo=FALSE}
+source("functions.R")
+p1 <- repeat_process(t = 1, ntrain = 372, data = alldata, showplot = "N")
+print(p1, row.names = TRUE)
+```
+
+(b)  We repeat the process of randomly splitting into training and testing sets 1000 times.  Each time we use the training set to fit a least squares regression model.  Each time we use the model to predict mpg for each car in the testing set and we calculate the root mean squared error (RMSE) of the predictions.  Finally we calculate the mean and standard deviation of the 1000 RMSEs.
+
+```{r, echo=FALSE}
+p1 <- repeat_process(t = 1000, ntrain = 372, data = alldata, showplot = "N")
+print(p1, row.names = FALSE)
+```
+
+##Part 2
+Next we see if performance can be improved by fitting a pth order regression model using least squares for p = 2,3,4.  This is also known as linear regression with basis expansion.  For each value of p we run 1000 experiments on randomly partitioned training/testing sets using 372 training and 20 testing examples.  
+
+(a)  For each experiment we calculate the root mean squared error (RMSE).  We then determine which p is best and plot a histogram of the errors for each p.
+
+```{r, echo=FALSE}
+plot.new()
+layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE), respect = TRUE)
+
+rmse_by_p <- data.frame(matrix(numeric(0), nrow = 4, ncol = 5))
+names(rmse_by_p) <- c("p", "MeanRMSE", "StdDevRMSE", "MeanPredError", "StdDevPredError")
+
+rmse_by_p[1,]    <- repeat_process(t = 1000, ntrain = 372, data = alldata)
+
+X2 <- (X[,2:7])^2
+alldata_2 <- cbind(alldata, X2)
+rmse_by_p[2,] <- repeat_process(t = 1000, ntrain = 372, data = alldata_2, p = 2)
+
+X3 <- (X[,2:7])^3
+alldata_3 <- cbind(alldata_2, X3)
+rmse_by_p[3,] <- repeat_process(t = 1000, ntrain = 372, data = alldata_3, p = 3)
+
+X4 <- (X[,2:7])^4
+alldata_4 <- cbind(alldata_3, X4)
+rmse_by_p[4,] <- repeat_process(t = 1000, ntrain = 372, data = alldata_4, p = 4)
+```
+
+```{r, echo=FALSE}
+cat("\n")
+print(rmse_by_p, row.names = FALSE)
+layout(1,1)
+```
+
+The prediction errors tell us how good the model performed against the test sets. The closer the mean RMSE is to zero, the closer the fit. A smaller RMSE standard deviation indicates that the errors are more concentrated around the mean. Consequently the model for p = 3 fits best out of the four, because its mean RMSE is closest to zero. The RMSE standard deviation for p = 3 is also slightly smaller than the others. This can also be seen in the histograms.
+
+(b)  We are asked to use maximum likelihood to fit a univariate Gaussian to the 20,000 errors and compute the log likelihood of these empirical errors using the maximum liklihood values for mean and variance.  We show this as a function of p and discuss how it agrees/disagrees with the conclusion in part 2(a).
+
+The maximum likelihood estimate (MLE) for the mean of a Gaussian distribution is the sample mean.  The MLE for the variance is the sample variance.  To compute the log likelihood of the empirical errors I used the R function pnorm, passing in the sample mean and sample standard deviation and setting the log option to TRUE.  Then I summed the resulting log probabilities.  Maximum likelihood estimation assumes that the most reasonable values are those for which the probability of the observed sample is largest.  For p=3 the prediction errors have the largest log-likelihood, indicating that its prediction errors are more likely than the other three models to come from a Gaussian distribution with parameters mean equal to its sample mean and variance equal to its sample variance.  
+
+The assumption best satisfied by p=3 in this set of experiments is that there is a linear relationship
+between mpg (y) and the expanded feature set (X).  This is best supported when the unexplained part of the relationship, the prediction errors, have a Normal distribution with mean equal to the sample mean and variance equal to the sample variance. 
+
+##Citations
+
