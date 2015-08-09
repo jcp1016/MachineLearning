@@ -43,7 +43,7 @@ plot.new()
 layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE), respect = TRUE)
 
 rmse_by_p <- data.frame(matrix(numeric(0), nrow = 4, ncol = 5))
-names(rmse_by_p) <- c("p", "MeanRMSE", "StdDevRMSE", "MeanPredError", "StdDevPredError")
+names(rmse_by_p) <- c("p", "MeanRMSE", "StdDevRMSE", "MeanPredError", "StdDevPredError", "PredErrorLogLikelihood")
 
 rmse_by_p[1,]    <- repeat_process(t = 1000, ntrain = 372, data = alldata)
 

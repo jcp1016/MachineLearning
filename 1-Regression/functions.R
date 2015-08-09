@@ -78,8 +78,10 @@ repeat_process <- function(t = 1000, ntrain = 372, data = alldata, p = 1, showpl
                 sd_RMSE     <- calc_MLE_sd(RMSE, mean_RMSE)
                 mean_error  <- calc_MLE_mean(pred_error)
                 sd_error    <- calc_MLE_sd(pred_error, mean_error)
-                results <- data.frame(p, mean_RMSE, sd_RMSE, mean_error, sd_error)
-                names(results) <- c("p", "MeanRMSE", "StdDevRMSE", "MeanPredError", "StdDevPredError")
+                ll_error    <- sum(pnorm(pred_error, mean=mean_error, sd=sd_error, log=TRUE))
+                results <- data.frame(p, mean_RMSE, sd_RMSE, mean_error, sd_error, ll_error)
+                names(results) <- c("p", "MeanRMSE", "StdDevRMSE", "MeanPredError",
+                                    "StdDevPredError", "LogLikelihood")
                 if (showplot == "Y") {
                         hist(pred_error,
                              main = paste("p = ", p),
