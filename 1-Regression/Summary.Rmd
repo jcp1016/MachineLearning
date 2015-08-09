@@ -87,7 +87,7 @@ The prediction errors tell us how well the model performed against the test sets
 For p=3 the prediction errors have the largest log-likelihood, indicating that its prediction errors are more likely than the other three models to come from a Gaussian distribution with mean equal to the mean prediction error and variance equal to the prediction error variance.  
 
 The assumption best satisfied by p=3 in this set of experiments is that there is a linear relationship
-between mpg (y) and the expanded feature set (X).  This is best supported when the unexplained part of the relationship, the prediction errors, have a Gaussian distribution with parameters mu equal to the sample mean and sigma-squared equal to the sample variance. 
+between mpg (y) and the expanded feature set (X).  This is best supported when the unexplained part of the relationship, the prediction errors, have a Gaussian distribution with parameters mu equal to the mean prediction error and sigma-squared equal to the empirical variance of the prediction errors. 
 
 ##References
 Trevor Hastie, Robert Tibshirani, Jerome Friedman, The Elements of Statistical Learning, Second Edition, (New York:

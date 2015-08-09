@@ -1,0 +1,6 @@
+---
+title:  Regression with basis expansion
+output: html_document
+---
+
+A summary of this project has been published on [RPubs](http://rpubs.com/jcp1016/99398).
