@@ -1,0 +1,225 @@
+---
+title: "Three classic machine learning classifiers"
+author: "Janet Prumachuk"
+output: html_document
+---
+##Background
+In machine learning the term *classification* is used when we want to predict a discrete category or class.  The outcome can be binary, as in "spam" or "not spam", or it can be multi-class, as in the set of digits from 0 to 9.  The resulting model is called a *classifier*.  When the outcome is continuous, as in a credit score or price, the term *prediction* is used instead of classification.
+
+##The Problem
+For this project we are asked to implement three classifiers for the MNIST (Mixed National Institute of Standards and Technology) handwritten digits dataset.  The MNIST database is a classic source used for training and testing machine learning algorithms.  One of the oldest and most well known Kaggle competitions involves classifying MNIST handwritten digits. 
+
+Specifically we are asked to implement a *k-Nearest Neighbors* classifier, a *Bayes* classifier (not its simpler cousin *Naive Bayes*), and a *Softmax* classifier.  Softmax is a multi-class logistic regression model.   
+
+##Preprocessing and dimension reduction
+The dataset that we are given has been preprocessed to reduce the number of features.  This is called dimension reduction through principal components analysis (PCA).  At a high level it involves finding the eigenvalues and eigenvectors of a matrix, a process known as spectral decomposition.  In mathematics an eigenvalue and eigenvector form a pair.   An eigenvalue is a number that tells you how much variance exists in the direction of its eigenvector. 
+
+The number of eigenvalues/eigenvectors that exist for a dataset is equal to the number of features.  In fact, the German word *eigen* translates to *own* or *self*.  The eigenvector with the highest eigenvalue is the first *principal component* because it explains more variance than any other eigenvector, unless of course there is a tie.  
+
+PCA allows you to reduce the number of dimensions by replacing them with the eigenvectors that explain *most* of the variance in the observed data.  On the downside, the meaning of the underlying data is abstracted away, making it more difficult to explain your classification or prediction results in context.  That being said, base R provides a very handy *eigen* function that returns the eigenvalues and eigenvectors for a matrix.  
+
+##Data
+We are given a training set of 5000 handwritten digits and a testing set of 500 handwritten digits. Each observation is a numeric vector of 20 synthetic features obtained through PCA.  Separately we are given the *labels* or the actual outcomes for each observation.  The possible outcomes or *classes* are the digits 0 through 9.  Because this is a *supervised learning* problem, we know the actual outcomes, even for the testing set.  We use the training labels to learn the model and we use the testing labels to evaluate the performance of the model.
+```{r, echo=FALSE}
+## Read the data
+setwd(".")
+Xtrain <- as.matrix(read.table("./mnist_csv/Xtrain.txt", sep=',', dec='.',
+                               check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
+
+Ytrain <- as.matrix(read.table("./mnist_csv/label_train.txt", sep=',', dec='.', 
+                     check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
+
+Xtest <- as.matrix(read.table("./mnist_csv/Xtest.txt", sep=',', dec='.', 
+                              check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
+Ytest <- as.matrix(read.table("./mnist_csv/label_test.txt", sep=',', dec='.', 
+                    check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
+
+Q <- as.matrix(read.table("./mnist_csv/Q.txt", sep=',', dec='.', 
+                check.names=FALSE, fill=FALSE, blank.lines.skip=TRUE))
+```
+
+```{r, echo=TRUE}
+dim(Xtrain)
+head(cbind(Ytrain, Xtrain))
+```
+
+##Building a k-Nearest Neighbors Classifier
+For each test case we calculate the distance between it and *every* training case.  For the distance calculation we use Euclidean distance.  
+
+We get the indices of the k-nearest neighbors in the training set and simply choose the label that appears most frequently.  We repeat this process for k = 1, 2, 3, 4, and 5.  Finally, we compare the prediction accuracy obtained for each k and choose the best k as our k-NN classifier.
+
+To assess our prediction accuracy for eack k we populate a *confusion matrix* where one axis represents the predicted label and the other represents the actual (correct) label.  The number of correct classifications appear along the diagonal.  Off-diagonal entries contain the number of incorrect classifications.  Prediction accuracy is sum of the diagonal elements, also known as the matrix *trace*, divided by the number of test cases.  
+
+We see that k-NN with k=1 performed best, with 94.8% accuracy.  
+
+```{r, echo=FALSE}
+n <- nrow(Xtest)
+Ypred <- vector(mode="integer", length=n)
+options(warn=-1)
+```
+
+```{r, echo=TRUE}
+classifyKNN <- function( k=1, X, Xtrain, Ytrain ) {        
+        ## Compute Euclidean distance from X to each vector in Xtrain
+        
+        r <- nrow(Xtrain)
+        d <- ncol(Xtrain)
+        Xdist <- vector(mode="numeric", length=r)
+        
+        for (i in 1:r) {
+                Xdist[i] <- sum( (X - Xtrain[i,])^2 )
+        }
+        Xdist <- sqrt(Xdist)
+        
+        ## Get the indices of the k-nearest neighbors
+        kNN <- vector(mode="numeric", length=k)
+        kNN <- which ( rank(Xdist, ties.method='random', na.last=TRUE) <= k )
+        
+        ## Return the class that appears most frequently amongst the k-NN;  
+        ## table is an R fn that returns a contingency table, which gives us the frequencies 
+        y  <- Ytrain[kNN]
+        yf <- as.data.frame( table(y), stringsAsFactors=FALSE )
+        ind  <- which ( yf$Freq == max(yf$Freq) )
+        as.integer( yf[ind,1] )       
+}
+
+calcTrace <- function(M) {
+        ## Assumes M is a square matrix
+        r <- nrow(M)
+        Mtrace <- 0
+        for (i in 1:r) {
+                Mtrace <- Mtrace + M[i,i] 
+        }
+        Mtrace
+}
+
+for (k in 1:5) {
+        #C is the confusion matrix
+        Cnames <- as.character(c(0:9))
+        C <- matrix( rep(0), nrow=10, ncol=10, byrow=TRUE, dimnames=list(Cnames, Cnames))
+        for (i in 1:n) {
+                Ypred[i] <- classifyKNN( k, Xtest[i,], Xtrain, Ytrain )
+                C[Ytest[i]+1, Ypred[i]+1] <- C[Ytest[i]+1, Ypred[i]+1] + 1
+        }
+        pred_accuracy <- calcTrace(C) / n
+        cat("\nk = ",k, "\nPrediction accuracy = ", pred_accuracy, "\n")
+        cat("Confusion Matrix: \n")
+        print(C)
+}
+```
+
+```{r, echo=FALSE}
+options(warn=0)
+```
+
+##Building a Bayes Classifier
+TODO:  rewrite this.....Bayes theorem tells us how to calculate a conditional probability using prior probabilities.
+
+The general approach is to calculate the empirical mean and covariance matrix for each class from the training data and calculate a classifier for each class (0-9).  The class that yields the maximum value is our prediction.  
+
+The plug in classifier is 
+<IMG SRC="plugin_classifier.gif" NAME="Object1" HSPACE=9 WIDTH=396 HEIGHT=48>
+
+We first calculate a vector of class-specific means, which represent the *class priors* or prior probabilities.  Using the class-specific means, we can calculate class-specific covariance matrices.  Each covariance matrix will be full rank, in this case 20 x 20.    Next we must calculate the inverse of each covariance matrix.  Luckily we can leverage the base R *solve* function for this.    
+
+```{r, echo=FALSE}
+training_set <- as.data.frame( cbind(Ytrain, Xtrain) )
+test_set     <- as.data.frame( cbind(Ytest,  Xtest) )
+names(training_set)[1] <- "y"
+names(test_set)[1]     <- "y"
+
+## Define the confusion matrix
+Cnames <- as.character(c(0:9))
+C <- matrix( rep(0), nrow=10, ncol=10, byrow=TRUE, dimnames=list(Cnames, Cnames))
+
+require("dplyr")
+```
+
+```{r, echo=TRUE}
+getMu <- function(class) {
+        g1  <- filter( training_set, y==class )
+        MU <- as.matrix( summarise_each(g1, funs(mean)) )
+        MU[1,-1]
+}
+
+getSigma <- function(class, class_mu) {
+        x <- as.matrix( filter( training_set, y==class )[,-1] )
+        class_n <- nrow(x)
+        d <- 20
+        for ( j in 1:d ) {
+                mu    <- class_mu[1,j]
+                x[,j] <- x[,j] - mu
+        }
+        SIGMA <- as.matrix( t(x) %*% x )
+        SIGMA <- SIGMA / class_n
+        SIGMA
+}
+
+getPrior <- function(class, n) {
+        g1  <- filter( training_set, y==class )
+        PI <- as.numeric( summarise(g1, p = n() / n) )
+        PI
+}
+
+classifyBayes <- function( x, y, case, explore=FALSE ) {       
+        class_MU      <- matrix(rep(0), nrow=1,  ncol=20)
+        class_SIGMA   <- matrix(rep(0), nrow=20, ncol=20)
+        class_SIGMA_I <- matrix(rep(0), nrow=20, ncol=20)
+        classifier    <- vector("integer", 10)
+        
+        X  <- as.matrix(x)
+        y  <- as.integer(y)
+        n  <- nrow(Ytrain)
+        p1 <- p2 <- p3 <- p4 <- 0
+        for (k in 1:10) {
+                class_prior   <- getPrior( class=k-1, n )  
+                class_MU      <- as.matrix( getMu( class=k-1 ) ) 
+                class_SIGMA   <- getSigma( class=k-1, t(class_MU) )
+                class_SIGMA_I <- solve(class_SIGMA) 
+                
+                p1 <- -0.5 * t(X - class_MU)
+                p2 <- p1 %*% class_SIGMA_I
+                p3 <- p2 %*% (x - class_MU)
+                p4 <- exp(p3)
+                classifier[k] <- prod(class_prior, 1/sqrt(det(class_SIGMA)), p4)
+        }
+        winner <- as.integer( which (classifier == max(classifier)) )
+        as.integer( winner-1 )
+}
+
+calcTrace <- function(M) {
+        ## Assumes M is a square matrix
+        r <- nrow(M)
+        Mtrace <- 0
+        for (i in 1:r) {
+                Mtrace <- Mtrace + M[i,i] 
+        }
+        Mtrace
+}
+
+n <- nrow(Ytest)
+Ypred  <- vector(mode="integer", length=n)
+for (i in 1:n) {
+        Ypred[i] <- classifyBayes( Xtest[i,], Ytest[i], i )
+        C[Ytest[i]+1, Ypred[i]+1] <- C[Ytest[i]+1, Ypred[i]+1] + 1    
+}
+pred_accuracy <- 0
+if (n > 0) {
+        pred_accuracy <- calcTrace(C) / n
+}
+```
+
+```{r, echo=FALSE}
+cat("Confusion Matrix: \n")
+print(C)
+cat("\nNumber of test cases = ", n, "\nPrediction accuracy = ", pred_accuracy, "\n")
+```
+
+At 93.6% accuracy, the Bayes classifier did not outperform k-Nearest Neighbors on the testing set.
+
+##Building a Multi-class Logistic Regression Classifier
+
+
+##References
+MNIST database. (2013, August 17). Retrieved August 9, 2015, from https://en.wikipedia.org/wiki/MNIST_database
+
