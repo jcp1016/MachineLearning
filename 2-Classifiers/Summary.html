@@ -70,20 +70,20 @@ img {
 <h2>Background</h2>
 <p>In machine learning the term <em>classification</em> is used when we want to predict a discrete category or class. The outcome can be binary, as in “spam” or “not spam”, or it can be multi-class, as in the set of digits from 0 to 9. The resulting model is called a <em>classifier</em>. When the outcome is continuous, as in a credit score or price, the term <em>prediction</em> is used instead of classification.</p>
 </div>
-<div id="the-problem" class="section level2">
-<h2>The Problem</h2>
-<p>For this project we are asked to implement three classifiers for the MNIST (Mixed National Institute of Standards and Technology) handwritten digits dataset. The MNIST database is a classic source used for training and testing machine learning algorithms. One of the oldest and most well known Kaggle competitions involves classifying MNIST handwritten digits.</p>
-<p>Specifically we are asked to implement a <em>K-Nearest Neighbors</em> classifier, a <em>Bayes</em> classifier (not its simpler cousin <em>Naive Bayes</em>), and a <em>Softmax</em> classifier. Softmax is a multi-class logistic regression model.</p>
+<div id="the-mnist-handwritten-digits-problem" class="section level2">
+<h2>The MNIST handwritten digits problem</h2>
+<p>We are asked to build three classifiers for the <a href="http://yann.lecun.com/exdb/mnist/">MNIST (Mixed National Institute of Standards and Technology) handwritten digits dataset</a>[1] and compare their performance. Specifically, we have been asked to implement a <em>k-nearest neighbors</em> classifier, a <em>Bayes</em> classifier, and a <em>multi-class logistic regression</em> classifier.</p>
 </div>
 <div id="preprocessing-and-dimension-reduction" class="section level2">
 <h2>Preprocessing and dimension reduction</h2>
-<p>The dataset that we are given has been preprocessed to reduce the number of features. This is called dimension reduction through principal components analysis (PCA). At a high level it involves finding the eigenvalues and eigenvectors of a matrix, a process known as spectral decomposition. In mathematics an eigenvalue and eigenvector form a pair. An eigenvalue is a number that tells you how much variance exists in the direction of its eigenvector.</p>
-<p>The number of eigenvalues/eigenvectors that exist for a dataset is equal to the number of features. In fact, the German word <em>eigen</em> translates to <em>own</em> or <em>self</em>. The eigenvector with the highest eigenvalue is the first <em>principal component</em> because it explains more variance than any other eigenvector, unless of course there is a tie.</p>
-<p>PCA allows you to reduce the number of dimensions by replacing them with the eigenvectors that explain <em>most</em> of the variance in the observed data. On the downside, the meaning of the underlying data is abstracted away, making it more difficult to explain your classification or prediction results in context. That being said, base R provides a very handy <em>eigen</em> function that returns the eigenvalues and eigenvectors for a matrix.</p>
+<p>The data that we are given has been preprocessed to reduce the number of features. This is called dimension reduction through principal components analysis (PCA). At a high level it involves finding the eigenvalues and eigenvectors of a matrix, a process known as spectral decomposition. In mathematics an eigenvalue and eigenvector form a pair. An eigenvalue is a number that tells you how much variance exists in the direction of its eigenvector.</p>
+<p>The number of eigenvalues/eigenvectors for a dataset is equal to the number of features. In fact, the German word <em>eigen</em> translates to <em>own</em> or <em>self</em>. The eigenvector with the highest eigenvalue is the first <em>principal component</em> because it contains more variance than any other eigenvector, unless of course there is a tie.</p>
+<p>PCA allows you to reduce the number of dimensions by replacing them with the eigenvectors that explain <em>most</em> of the variance in the observed data. On the downside, the meaning of the underlying data is abstracted away, making it more difficult to explain your classification or prediction results in context. That said, base R provides a handy <em>eigen</em> function that returns the eigenvalues and eigenvectors of a matrix.</p>
 </div>
-<div id="data" class="section level2">
-<h2>Data</h2>
-<p>We are given a training set of 5000 handwritten digits and a testing set of 500 handwritten digits. Each observation is a numeric vector of 20 synthetic features obtained through PCA. Separately we are given the <em>labels</em> or the actual outcomes for each observation. The possible outcomes or classes are the digits 0 through 9. Because this is a <em>supervised learning</em> problem, we know the actual outcomes, even for the testing set. We use the training labels to learn the model and we use the testing labels to evaluate the performance of the model.</p>
+<div id="the-data" class="section level2">
+<h2>The data</h2>
+<p>We are given a training set of 5000 handwritten digits and a testing set of 500 handwritten digits. Each observation is a numeric vector of 20 synthetic features obtained through PCA. Separately we are given the <em>labels</em> or actual outcomes. The possible outcomes are called <em>classes</em>, in this case the digits 0 through 9.</p>
+<p>This is a <em>supervised learning</em> problem because we know the outcomes, even for the testing set. We will use the training labels to <em>learn</em> the model and we will use the testing labels to evaluate the performance of the model. If the model performs well, we can run it on future test cases where the label is not known. If we continue to receive more labeled data, we can continue to train or <em>learn</em> the model.</p>
 <pre class="r"><code>dim(Xtrain)</code></pre>
 <pre><code>## [1] 5000   20</code></pre>
 <pre class="r"><code>head(cbind(Ytrain, Xtrain))</code></pre>
@@ -110,10 +110,10 @@ img {
 ## [6,] -0.076072 -0.015377  1.00780  0.063510  0.961080 -0.399360</code></pre>
 </div>
 <div id="building-a-k-nearest-neighbors-classifier" class="section level2">
-<h2>Building a k-Nearest Neighbors Classifier</h2>
-<p>For each test case we calculate the distance between the test case and <em>every</em> training case. We get the indices of the k-nearest neighbors in the training set and simply choose the label that appears most frequently. We repeat this process for k = 1, 2, 3, 4, and 5. Finally we compare the results obtained for each k and choose the best k as our k-NN classifier.</p>
-<p>For the distance calculation we use Euclidean distance. Manhattan distance, also known as L1-distance, could also be used. For each k we populate a <em>confusion matrix</em> where one axis represents the predicted label and the other represents the actual (correct) label. The number of correct classifications appear along the diagonal. Off-diagonal entries contain the number of incorrect classifications. Prediction accuracy can then be calculated as the sum of the diagonal elements, known as the matrix <em>trace</em>, divided by the number of test cases.</p>
-<p>We see that the model with k=1 performed best, with 94.8% accuracy.</p>
+<h2>Building a k-Nearest Neighbors classifier</h2>
+<p>For each test case we calculate the Euclidean distance between it and <em>every</em> training case. We then get the indices of the <em>k-nearest neighbors</em> in the training set. Our prediction for each test case is the label that occurs most frequently amongst its k nearest neighbors.</p>
+<p>We repeat this process for k = 1, 2, 3, 4, and 5. We compare the prediction accuracy obtained for each k and choose the best k. In order to assess prediction accuracy for eack k, we populate a <em>confusion matrix</em> where one axis represents the predicted label and the other represents the actual label. The numbers along the diagonal tell us how many predictions were correct. Off-diagonal entries indicate the number of test cases that were misclassified. Prediction accuracy is sum of the diagonal elements, also known as the matrix <em>trace</em>, divided by the number of test cases.</p>
+<p>We see that k-NN with k=1 performed best, with 94.8% accuracy.</p>
 <pre class="r"><code>classifyKNN &lt;- function( k=1, X, Xtrain, Ytrain ) {        
         ## Compute Euclidean distance from X to each vector in Xtrain
         
@@ -238,10 +238,11 @@ for (k in 1:5) {
 ## 9  0  1  0  0  0  0  1  0  0 48</code></pre>
 </div>
 <div id="building-a-bayes-classifier" class="section level2">
-<h2>Building a Bayes Classifier</h2>
-<p>The general approach is to calculate the empirical mean and covariance matrix for each class from the training data and calculate a classifier for each class (0-9). The class that yields the maximum value is our prediction.</p>
-<p>The plug in classifier is <IMG SRC="plugin_classifier.gif" NAME="Object1" HSPACE="9" WIDTH="396" HEIGHT="48"></p>
-<p>We first calculate a vector of class-specific means, which represent the <em>class priors</em> or prior probabilities. Using the class-specific means, we can calculate class-specific covariance matrices. Each covariance matrix will be full rank, in this case 20 x 20. Next we must calculate the inverse of each covariance matrix. Luckily we can leverage the base R <em>solve</em> function for this.</p>
+<h2>Building a Bayes classifier</h2>
+<p>This classifier uses Bayes theorem to convert a prior probability into a posterior probability using maximum likelihood values for the mean and variance.</p>
+<p>We use our training data to compute the empirical mean and the empirical covariance matrix for each class (0-9). These are <em>plugged-in</em> to a classifier for each class. The <em>plug-in classifier</em> is <IMG SRC="plugin_classifier.gif" NAME="Object1" HSPACE="9" WIDTH="396" HEIGHT="48"></p>
+<p>Our prediction is the class that yields the maximum posterior probability.</p>
+<p>We first calculate the mean for each class, also called <em>class priors</em> or prior probabilities. Using the class specific means, we calculate class specific covariance matrices. Each covariance matrix will be 20 x 20 because we have 20 features. We will also need to calculate the inverse of each covariance matrix. Luckily we can use the base R <em>solve</em> function for this. Finally we are ready to compute the plug-in classifier for each of the ten classes.</p>
 <pre><code>## Loading required package: dplyr
 ## 
 ## Attaching package: 'dplyr'
@@ -339,14 +340,14 @@ if (n &gt; 0) {
 <pre><code>## 
 ## Number of test cases =  500 
 ## Prediction accuracy =  0.936</code></pre>
-<p>At 93.6% accuracy, the Bayes classifier did not outperform k-Nearest Neighbors on the testing set.</p>
+<p>At 93.6% accuracy, the Bayes classifier did not perform better than k-Nearest Neighbors on our testing data.</p>
 </div>
-<div id="building-a-multi-class-logistic-regression-classifier" class="section level2">
-<h2>Building a Multi-class Logistic Regression Classifier</h2>
+<div id="building-a-logistic-regression-classifier" class="section level2">
+<h2>Building a Logistic Regression Classifier</h2>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
-<p>MNIST database. (2013, August 17). Retrieved August 9, 2015, from <a href="https://en.wikipedia.org/wiki/MNIST_database" class="uri">https://en.wikipedia.org/wiki/MNIST_database</a></p>
+<p>[1] “MNIST database”, Wikipedia (2013, August 17). Retrieved August 9, 2015, from <a href="https://en.wikipedia.org/wiki/MNIST_database" class="uri">https://en.wikipedia.org/wiki/MNIST_database</a></p>
 </div>
 
 

@@ -6,20 +6,21 @@ output: html_document
 ##Background
 In machine learning the term *classification* is used when we want to predict a discrete category or class.  The outcome can be binary, as in "spam" or "not spam", or it can be multi-class, as in the set of digits from 0 to 9.  The resulting model is called a *classifier*.  When the outcome is continuous, as in a credit score or price, the term *prediction* is used instead of classification.
 
-##The Problem
-For this project we are asked to implement three classifiers for the MNIST (Mixed National Institute of Standards and Technology) handwritten digits dataset.  The MNIST database is a classic source used for training and testing machine learning algorithms.  One of the oldest and most well known Kaggle competitions involves classifying MNIST handwritten digits. 
-
-Specifically we are asked to implement a *k-Nearest Neighbors* classifier, a *Bayes* classifier (not its simpler cousin *Naive Bayes*), and a *Softmax* classifier.  Softmax is a multi-class logistic regression model.   
+##The MNIST handwritten digits problem
+We are asked to build three classifiers for the [MNIST (Mixed National Institute of Standards and Technology) handwritten digits dataset](http://yann.lecun.com/exdb/mnist/)[1] and compare their performance.  Specifically, we have been asked to implement a *k-nearest neighbors* classifier, a *Bayes* classifier, and a *logistic regression* classifier.   
 
 ##Preprocessing and dimension reduction
-The dataset that we are given has been preprocessed to reduce the number of features.  This is called dimension reduction through principal components analysis (PCA).  At a high level it involves finding the eigenvalues and eigenvectors of a matrix, a process known as spectral decomposition.  In mathematics an eigenvalue and eigenvector form a pair.   An eigenvalue is a number that tells you how much variance exists in the direction of its eigenvector. 
+The data that we are given has been preprocessed to reduce the number of features.  This is called dimension reduction through principal components analysis (PCA).  At a high level it involves finding the eigenvalues and eigenvectors of a matrix, a process known as spectral decomposition.  In mathematics an eigenvalue and eigenvector form a pair.   An eigenvalue is a number that tells you how much variance exists in the direction of its eigenvector. 
 
-The number of eigenvalues/eigenvectors that exist for a dataset is equal to the number of features.  In fact, the German word *eigen* translates to *own* or *self*.  The eigenvector with the highest eigenvalue is the first *principal component* because it explains more variance than any other eigenvector, unless of course there is a tie.  
+The number of eigenvalues/eigenvectors for a dataset is equal to the number of features.  In fact, the German word *eigen* translates to *own* or *self*.  The eigenvector with the highest eigenvalue is the first *principal component* because it contains more variance than any other eigenvector, unless of course there is a tie.  
 
-PCA allows you to reduce the number of dimensions by replacing them with the eigenvectors that explain *most* of the variance in the observed data.  On the downside, the meaning of the underlying data is abstracted away, making it more difficult to explain your classification or prediction results in context.  That being said, base R provides a very handy *eigen* function that returns the eigenvalues and eigenvectors for a matrix.  
+PCA allows you to reduce the number of dimensions by replacing them with the eigenvectors that explain *most* of the variance in the observed data.  On the downside, the meaning of the underlying data is abstracted away, making it more difficult to explain your classification or prediction results in context.  That said, base R provides a handy *eigen* function that returns the eigenvalues and eigenvectors of a matrix.  
 
-##Data
-We are given a training set of 5000 handwritten digits and a testing set of 500 handwritten digits. Each observation is a numeric vector of 20 synthetic features obtained through PCA.  Separately we are given the *labels* or the actual outcomes for each observation.  The possible outcomes or *classes* are the digits 0 through 9.  Because this is a *supervised learning* problem, we know the actual outcomes, even for the testing set.  We use the training labels to learn the model and we use the testing labels to evaluate the performance of the model.
+##The data 
+We are given a training set of 5000 handwritten digits and a testing set of 500 handwritten digits. Each observation is a numeric vector of 20 synthetic features obtained through PCA.  Separately we are given the *labels* or actual outcomes.  The possible outcomes are called *classes*, in this case the digits 0 through 9.  
+
+This is a *supervised learning* problem because we know the outcomes, even for the testing set.  We will use the training labels to *learn* the model and we will use the testing labels to evaluate the performance of the model.  If the model performs well, we can run it on future test cases where the label is not known.  If we continue to receive more labeled data, we can continue to train or *learn* the model. 
+
 ```{r, echo=FALSE}
 ## Read the data
 setwd(".")
@@ -43,14 +44,14 @@ dim(Xtrain)
 head(cbind(Ytrain, Xtrain))
 ```
 
-##Building a k-Nearest Neighbors Classifier
-For each test case we calculate the distance between it and *every* training case.  For the distance calculation we use Euclidean distance.  
+##Building a k-Nearest Neighbors classifier
+For each test case we calculate the Euclidean distance between it and *every* training case.  We then get the indices of the *k-nearest neighbors* in the training set.  Our prediction for a test case is the label that occurs most frequently amongst its k nearest neighbors.  
 
-We get the indices of the k-nearest neighbors in the training set and simply choose the label that appears most frequently.  We repeat this process for k = 1, 2, 3, 4, and 5.  Finally, we compare the prediction accuracy obtained for each k and choose the best k as our k-NN classifier.
+We repeat this process for k = 1, 2, 3, 4, and 5.  We compare the prediction accuracy obtained for each k and choose the best k.  
 
-To assess our prediction accuracy for eack k we populate a *confusion matrix* where one axis represents the predicted label and the other represents the actual (correct) label.  The number of correct classifications appear along the diagonal.  Off-diagonal entries contain the number of incorrect classifications.  Prediction accuracy is sum of the diagonal elements, also known as the matrix *trace*, divided by the number of test cases.  
+In order to assess prediction accuracy for eack k, we populate a *confusion matrix* where one axis represents the predicted label and the other represents the actual label.  The numbers along the diagonal tell us how many predictions were correct.  Off-diagonal entries indicate the number of test cases that were misclassified.  Prediction accuracy is sum of the diagonal elements, also known as the matrix *trace*, divided by the number of test cases.  
 
-We see that k-NN with k=1 performed best, with 94.8% accuracy.  
+We see that k-NN with k=1 performed best on the testing set, with 94.8% accuracy.  
 
 ```{r, echo=FALSE}
 n <- nrow(Xtest)
@@ -112,15 +113,12 @@ for (k in 1:5) {
 options(warn=0)
 ```
 
-##Building a Bayes Classifier
-TODO:  rewrite this.....Bayes theorem tells us how to calculate a conditional probability using prior probabilities.
-
-The general approach is to calculate the empirical mean and covariance matrix for each class from the training data and calculate a classifier for each class (0-9).  The class that yields the maximum value is our prediction.  
-
-The plug in classifier is 
+##Building a Bayes classifier
+This model uses the underlying structure of the data for each class.  It applies Bayes theorem to convert a *prior probability* into a *posterior probability* using class-specific maximum likelihood estimates for mean and variance. The prior probability for a class is simply the frequency of that class in our training dataset.   
+We will first compute the empirical mean and the empirical covariance matrix for each class (0-9) from our training data.  For each test case we will solve a *plug-in classifier* for each of the 10 classes.  The plug-in classifier is:  
 <IMG SRC="plugin_classifier.gif" NAME="Object1" HSPACE=9 WIDTH=396 HEIGHT=48>
 
-We first calculate a vector of class-specific means, which represent the *class priors* or prior probabilities.  Using the class-specific means, we can calculate class-specific covariance matrices.  Each covariance matrix will be full rank, in this case 20 x 20.    Next we must calculate the inverse of each covariance matrix.  Luckily we can leverage the base R *solve* function for this.    
+Our prediction is the class that yields the maximum posterior probability.  
 
 ```{r, echo=FALSE}
 training_set <- as.data.frame( cbind(Ytrain, Xtrain) )
@@ -215,11 +213,20 @@ print(C)
 cat("\nNumber of test cases = ", n, "\nPrediction accuracy = ", pred_accuracy, "\n")
 ```
 
-At 93.6% accuracy, the Bayes classifier did not outperform k-Nearest Neighbors on the testing set.
+At 93.6% accuracy, the Bayes classifier did not perform better than k-Nearest Neighbors on our testing data.
 
-##Building a Multi-class Logistic Regression Classifier
+##Building a Multiclass Logistic Regression Classifier
+Logistic regression is an example of a *generalized linear model* or GLM.  Its response variable is discrete with two possible outcomes, so it is appropriate for binary classification problems.  
+
+Logistic regression uses the logit function, which is the natural log of the probability that the response variable Y is 1, divided by the probability that Y is 0.  This can be written as: *ln[P/(1-P)] = B0 + B1*X1 + B2*X2 + ...*, where the left side of the equation is the logit function and the right side is linear in the coefficients.
+
+To solve for P we apply the exponential function to both sides.
+
+It genearlizes logistic regression from a binary problem to a multi-class problem.  It makes use of the S-shaped *sigmoid function* to map a K-dimensional vector of real values to a K-dimensional vector of real values in the range (0,1).  
+
+
 
 
 ##References
-MNIST database. (2013, August 17). Retrieved August 9, 2015, from https://en.wikipedia.org/wiki/MNIST_database
+1. "MNIST database", Wikipedia (2013, August 17). [https://en.wikipedia.org/wiki/MNIST_database](https://en.wikipedia.org/wiki/MNIST_database)
 
